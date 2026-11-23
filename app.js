@@ -7,6 +7,51 @@ let data, assets, index = 0, example = null, busy = false,
   point = { x: 240, y: 135 }, requestSerial = 0;
 const CACHE = new Map();
 
+function makeDemoExample() {
+  const W = 480, H = 270, N = W * H;
+  let s = 0x12345678;
+  const rand = () => { s ^= s << 13; s ^= s >> 17; s ^= s << 5; return (s >>> 0) / 4294967296; };
+
+  const measurement = new Uint8Array(3 * N);
+  for (let c = 0; c < 3; c++) {
+    const base = [0.4, 0.3, 0.6][c];
+    for (let i = 0; i < N; i++)
+      measurement[c * N + i] = Math.round(Math.max(0, Math.min(255, (base + (rand() - 0.5) * 0.5) * 255)));
+  }
+
+  const target = new Uint8Array(3 * N);
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      target[0 * N + y * W + x] = Math.round((0.3 + 0.5 * x / W) * 255);
+      target[1 * N + y * W + x] = Math.round((0.2 + 0.5 * y / H) * 255);
+      target[2 * N + y * W + x] = Math.round((0.5 - 0.3 * x / W + 0.2 * y / H) * 255);
+    }
+
+  const models = {};
+  const noiseScale = [0.08, 0.07, 0.12, 0.15];
+  const widthScale = [0.06, 0.05, 0.10, 0.13];
+  for (const [i, method] of METHODS.entries()) {
+    s = 0xdeadbe00 + i * 0x9e3779b9;
+    const prediction = new Float32Array(3 * N);
+    const lower = new Float32Array(3 * N);
+    const upper = new Float32Array(3 * N);
+    for (let j = 0; j < 3 * N; j++) {
+      const t = target[j] / 255;
+      prediction[j] = Math.max(0, Math.min(1, t + (rand() - 0.5) * noiseScale[i]));
+      const w = widthScale[i] * (0.5 + rand());
+      lower[j] = Math.max(0, prediction[j] - w * 0.5);
+      upper[j] = Math.min(1, prediction[j] + w * 0.5);
+    }
+    models[method] = { prediction, lower, upper };
+  }
+
+  return {
+    id: "demo", width: W, height: H,
+    measurement, target, models,
+    arrays: [{ name: "target", shape: [3, H, W] }],
+  };
+}
+
 function controls(disabled) {
   window.exampleBrowser?.setBusy(disabled);
   for (const id of ["example", "previous", "next", "random"])
@@ -189,7 +234,9 @@ async function loadExample() {
       })
     );
     if (data.example_count === 0) {
-      $("#status").textContent = "Inference pending — examples not yet available.";
+      example = makeDemoExample();
+      renderExample();
+      $("#status").textContent = "Layout preview · inference pending";
       controls(true);
       return;
     }

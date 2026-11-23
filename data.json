@@ -1,4 +1,4 @@
 {
-  "methods": ["qutcc", "im2im"],
+  "methods": ["qutcc", "im2im", "deepensemble", "mcdropout"],
   "example_count": 0
 }

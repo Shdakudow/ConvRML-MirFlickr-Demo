@@ -1,7 +1,7 @@
 "use strict";
-const METHODS = ["qutcc", "im2im"],
-  NAMES = { qutcc: "QUTCC", im2im: "Im2im" },
-  COLORS = { qutcc: "#63dbce", im2im: "#f2b76a" };
+const METHODS = ["qutcc", "im2im", "deepensemble", "mcdropout"],
+  NAMES = { qutcc: "QUTCC", im2im: "Im2im", deepensemble: "DeepEnsemble", mcdropout: "MCDropout" },
+  COLORS = { qutcc: "#63dbce", im2im: "#f2b76a", deepensemble: "#a78bfa", mcdropout: "#f87171" };
 const $ = (s) => document.querySelector(s);
 let data, assets, index = 0, example = null, busy = false,
   point = { x: 240, y: 135 }, requestSerial = 0;
@@ -115,19 +115,25 @@ function drawImages() {
 
 function renderExample() {
   window.exampleBrowser?.update(index);
-  let html = "";
+  const cols = [
+    ["prediction", "Reconstruction"], ["error", "Error"], ["width", "Uncertainty"],
+    ["lower", "Lower"], ["upper", "Upper"],
+  ];
+  const isBound = (kind) => kind === "lower" || kind === "upper";
+  let html = `<div class="method-row col-headers"><div class="method-label"></div>` +
+    cols.map(([kind, label]) => `<div class="${isBound(kind) ? "bound-image" : ""}">${label}</div>`).join("") +
+    `</div>`;
   for (const method of METHODS) {
     const m = example.models[method];
+    const nameDiv = `<div class="method-label" style="color:${COLORS[method]}">${NAMES[method]}</div>`;
     if (!m) {
-      html += `<div class="model-header"><h3>${NAMES[method]}</h3><p>Inference pending.</p></div>`;
+      html += `<div class="method-row">${nameDiv}<p class="pending-method">Inference pending.</p></div>`;
       continue;
     }
-    html += `<div class="model-header"><h3 style="color:${COLORS[method]}">${NAMES[method]}</h3></div>`;
-    for (const [kind, label] of [
-      ["prediction", "Reconstruction"], ["error", "Error"], ["width", "Uncertainty"],
-      ["lower", "Lower bound"], ["upper", "Upper bound"],
-    ])
-      html += `<figure class="${["lower", "upper"].includes(kind) ? "bound-image" : ""}"><figcaption>${label}</figcaption><canvas class="image" data-kind="${kind}" data-method="${method}"></canvas></figure>`;
+    const figures = cols.map(([kind]) =>
+      `<figure class="${isBound(kind) ? "bound-image" : ""}"><canvas class="image" data-kind="${kind}" data-method="${method}"></canvas></figure>`
+    ).join("");
+    html += `<div class="method-row">${nameDiv}${figures}</div>`;
   }
   $("#matrix").innerHTML = html;
   drawImages();
@@ -144,13 +150,13 @@ async function loadExample() {
     if (!item) {
       const loaded = await Promise.all(METHODS.map((m) =>
         unpack(`${assets.base}/${m}/example_${String(index).padStart(2, "0")}.bin.gz`)));
-      const [a, b] = loaded;
-      if (String(a.id) !== String(b.id) || a.target.length !== b.target.length)
-        throw Error("Example pairing mismatch");
-      const shape = a.arrays.find((d) => d.name === "target").shape;
+      for (let i = 1; i < loaded.length; i++)
+        if (String(loaded[i].id) !== String(loaded[0].id) || loaded[i].target.length !== loaded[0].target.length)
+          throw Error("Example pairing mismatch");
+      const shape = loaded[0].arrays.find((d) => d.name === "target").shape;
       item = {
-        id: a.id, width: shape[2], height: shape[1],
-        measurement: a.measurement, target: a.target,
+        id: loaded[0].id, width: shape[2], height: shape[1],
+        measurement: loaded[0].measurement, target: loaded[0].target,
         models: Object.fromEntries(METHODS.map((m, i) => [m, loaded[i]])),
       };
       if (CACHE.size > 5) CACHE.delete(CACHE.keys().next().value);
@@ -197,7 +203,7 @@ async function loadExample() {
     $("#previous").onclick = () => { index = (index + data.example_count - 1) % data.example_count; $("#example").value = index; loadExample(); };
     $("#random").onclick = () => { index = Math.floor(Math.random() * data.example_count); $("#example").value = index; loadExample(); };
     $("#channel").onchange = renderPixel;
-    $("#showBounds").onchange = () => $("#matrix").classList.toggle("show-bounds", $("#showBounds").checked);
+    $("#showBounds").onclick = () => { const on = $("#matrix").classList.toggle("show-bounds"); $("#showBounds").classList.toggle("active", on); };
     loadExample();
   } catch (e) {
     $("#status").textContent = "Could not load results: " + e.message;

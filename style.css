@@ -6,3 +6,9 @@ details{border:1px solid #33455c;border-radius:8px;margin:14px 0;background:#142
 footer{color:#8c9fb5;font-size:13px;padding-top:12px}
 @media(max-width:850px){.method-row{flex-wrap:wrap}.method-label{width:100%;padding-top:0;padding-bottom:4px}}
 @media(max-width:500px){header,main{padding:12px}.inputs{grid-template-columns:1fr}}
+
+.matrix-scroll { overflow-x: auto; }
+.matrix { min-width: 600px; }
+.matrix.show-bounds { min-width: 840px; }
+.method-row { flex-wrap: nowrap; }
+.method-row .method-label { flex: 0 0 7rem; text-align: left; }

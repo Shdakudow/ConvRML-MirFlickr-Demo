@@ -14,11 +14,12 @@
 <body>
 <header>
 <p class="eyebrow">MIRFLICKR · LENSLESS IMAGING</p>
-<h1>Reconstruction &amp; uncertainty</h1>
+<h1>Hard test scenes</h1>
+<p>Four held-out MIRFLICKR scenes with the lowest Im2im reconstruction SSIM among 32 randomly sampled test images (seed 777).</p>
 </header>
 <main>
 <nav class="controls">
-  <label>Image <select id="example"></select></label>
+  <label>Objects <select id="example"></select></label>
   <button id="previous" aria-label="Previous">←</button>
   <button id="next" aria-label="Next">→</button>
   <button id="random">Random</button>
@@ -32,15 +33,15 @@
 
 <section aria-label="Model outputs">
   <div class="guide">
-    <div><b>Error</b> = |ground truth − prediction| &nbsp; <b>Uncertainty</b> = upper − lower</div>
+    <div><b>Absolute error</b> = |ground truth − prediction| &nbsp; <b>Uncertainty</b> = upper − lower<br>Both maps show the RGB mean with Gaussian smoothing (σ = 2 image pixels).</div>
     <div class="map-key">
       <span class="gradient" aria-hidden="true"></span>
       <span>0 → 1</span>
     </div>
-    <button id="showBounds" class="bounds-toggle">Show UB / LB</button>
+    <button id="showBounds" class="bounds-toggle" aria-controls="matrix" aria-expanded="true">Hide bounds</button>
   </div>
-  <div id="matrix" class="matrix"></div>
-  <p class="hint">Click a pixel to inspect its value. <span class="badge">Display: clipped [0,1]</span></p>
+  <div class="matrix-scroll"><div id="matrix" class="matrix show-bounds"></div></div>
+  <p class="hint">MC dropout spans [0, 1] across these scenes, so its uncertainty map is uniform. Click a pixel to inspect its unsmoothed values. <span class="badge">Display: clipped [0,1]</span></p>
 
   <details id="pixelInspector">
     <summary>Inspect a pixel</summary>
@@ -65,6 +66,6 @@
   </details>
 </section>
 </main>
-<footer>MIRFLICKR · QUTCC / Im2im</footer>
+<footer>MIRFLICKR · QUTCC / Im2im / Deep ensemble / MC dropout</footer>
 </body>
 </html>

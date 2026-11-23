@@ -1,4 +1,49 @@
 {
-  "methods": ["qutcc", "im2im", "deepensemble", "mcdropout"],
-  "example_count": 0
+  "scenes": [
+    {
+      "id": "test_im830.png",
+      "objects": "Illustrated face with red and cream shapes",
+      "ssim": 0.6550857424736023
+    },
+    {
+      "id": "test_im843.png",
+      "objects": "Two people beside a tiled roof",
+      "ssim": 0.6652366518974304
+    },
+    {
+      "id": "test_im74.png",
+      "objects": "Blue glass panels and metal frames",
+      "ssim": 0.7187926173210144
+    },
+    {
+      "id": "test_im324.png",
+      "objects": "Labeled tins on a shelf",
+      "ssim": 0.7194052338600159
+    }
+  ],
+  "selection": {
+    "split": "test",
+    "sample_size": 32,
+    "seed": 777,
+    "ranked_by": "Ascending Im2im RGB SSIM, data_range=1",
+    "manifest_sha256": "92b12e510b1e81f78ad7103b28d8f7899763549224b88ce25454df398f5d2a9c"
+  },
+  "checkpoints": {
+    "qutcc": {
+      "epoch": 49,
+      "sha256": "cd0a33b0f28cc6439be52d392b4082b4e6d0d40b7a966c007db9f9a4527e9ef7"
+    },
+    "im2im": {
+      "epoch": 50,
+      "sha256": "fe2dde92411788efe48a41f6ef2be8ffe9a4126547df40937fed78b4c231ae6a"
+    },
+    "deepensemble": {
+      "epoch": 49,
+      "sha256": "9b2121bb7fd1005a00c6da0142a32139f38ff06a50f434c070a244f8bd72bf3a"
+    },
+    "mcdropout": {
+      "epoch": 44,
+      "sha256": "4b2ac9a264e9db33516b58235706a2e0498a69a8b5524a97ce046b6a907ebc92"
+    }
+  }
 }

@@ -1,56 +1,11 @@
 "use strict";
 const METHODS = ["qutcc", "im2im", "deepensemble", "mcdropout"],
-  NAMES = { qutcc: "QUTCC", im2im: "Im2im", deepensemble: "DeepEnsemble", mcdropout: "MCDropout" },
+  NAMES = { qutcc: "QUTCC", im2im: "Im2im", deepensemble: "Deep ensemble", mcdropout: "MC dropout" },
   COLORS = { qutcc: "#63dbce", im2im: "#f2b76a", deepensemble: "#a78bfa", mcdropout: "#f87171" };
 const $ = (s) => document.querySelector(s);
 let data, assets, index = 0, example = null, busy = false,
   point = { x: 240, y: 135 }, requestSerial = 0;
 const CACHE = new Map();
-
-function makeDemoExample() {
-  const W = 480, H = 270, N = W * H;
-  let s = 0x12345678;
-  const rand = () => { s ^= s << 13; s ^= s >> 17; s ^= s << 5; return (s >>> 0) / 4294967296; };
-
-  const measurement = new Uint8Array(3 * N);
-  for (let c = 0; c < 3; c++) {
-    const base = [0.4, 0.3, 0.6][c];
-    for (let i = 0; i < N; i++)
-      measurement[c * N + i] = Math.round(Math.max(0, Math.min(255, (base + (rand() - 0.5) * 0.5) * 255)));
-  }
-
-  const target = new Uint8Array(3 * N);
-  for (let y = 0; y < H; y++)
-    for (let x = 0; x < W; x++) {
-      target[0 * N + y * W + x] = Math.round((0.3 + 0.5 * x / W) * 255);
-      target[1 * N + y * W + x] = Math.round((0.2 + 0.5 * y / H) * 255);
-      target[2 * N + y * W + x] = Math.round((0.5 - 0.3 * x / W + 0.2 * y / H) * 255);
-    }
-
-  const models = {};
-  const noiseScale = [0.08, 0.07, 0.12, 0.15];
-  const widthScale = [0.06, 0.05, 0.10, 0.13];
-  for (const [i, method] of METHODS.entries()) {
-    s = 0xdeadbe00 + i * 0x9e3779b9;
-    const prediction = new Float32Array(3 * N);
-    const lower = new Float32Array(3 * N);
-    const upper = new Float32Array(3 * N);
-    for (let j = 0; j < 3 * N; j++) {
-      const t = target[j] / 255;
-      prediction[j] = Math.max(0, Math.min(1, t + (rand() - 0.5) * noiseScale[i]));
-      const w = widthScale[i] * (0.5 + rand());
-      lower[j] = Math.max(0, prediction[j] - w * 0.5);
-      upper[j] = Math.min(1, prediction[j] + w * 0.5);
-    }
-    models[method] = { prediction, lower, upper };
-  }
-
-  return {
-    id: "demo", width: W, height: H,
-    measurement, target, models,
-    arrays: [{ name: "target", shape: [3, H, W] }],
-  };
-}
 
 function controls(disabled) {
   window.exampleBrowser?.setBusy(disabled);
@@ -90,25 +45,65 @@ function heat(v) {
   return stops[i].map((a, k) => Math.round(a + (stops[i + 1][k] - a) * f));
 }
 
+// Smooth scalar values before coloring, with a 2-pixel Gaussian and replicated edges.
+function smoothMap(values, width, height) {
+  const sigma = 2;
+  const radius = 3 * sigma;
+  const weights = Array.from({length: 2 * radius + 1}, (_, i) => Math.exp(-((i - radius) ** 2) / (2 * sigma ** 2)));
+  const sum = weights.reduce((a, b) => a + b, 0);
+  const horizontal = new Float32Array(values.length);
+  const result = new Float32Array(values.length);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let total = 0;
+      for (let dx = -radius; dx <= radius; dx++) {
+        const xx = Math.max(0, Math.min(width - 1, x + dx));
+        total += weights[dx + radius] * values[y * width + xx];
+      }
+      horizontal[y * width + x] = total / sum;
+    }
+  }
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let total = 0;
+      for (let dy = -radius; dy <= radius; dy++) {
+        const yy = Math.max(0, Math.min(height - 1, y + dy));
+        total += weights[dy + radius] * horizontal[yy * width + x];
+      }
+      result[y * width + x] = total / sum;
+    }
+  }
+  return result;
+}
+
+function displayMap(model, kind) {
+  if (model[kind]) return model[kind];
+  const {width, height, target} = example;
+  const count = width * height;
+  const values = new Float32Array(count);
+  for (let i = 0; i < values.length; i++) {
+    for (let c = 0; c < 3; c++) {
+      const k = c * count + i;
+      values[i] += (kind === "error" ? Math.abs(target[k] / 255 - model.prediction[k])
+        : model.upper[k] - model.lower[k]) / 3;
+    }
+  }
+  model[kind] = smoothMap(values, width, height);
+  return model[kind];
+}
+
 function paint(canvas, kind, model) {
   const { width: w, height: h } = example, N = w * h;
   canvas.width = w; canvas.height = h;
   const ctx = canvas.getContext("2d"), img = ctx.createImageData(w, h);
   let arr;
   if (kind === "measurement" || kind === "target") arr = example[kind];
+  else if (kind === "error" || kind === "width") arr = displayMap(example.models[model], kind);
   else arr = example.models[model][kind];
   for (let i = 0; i < N; i++) {
     let rgb;
     if (kind === "error" || kind === "width") {
-      let value = 0;
-      const m = example.models[model];
-      for (let c = 0; c < 3; c++) {
-        const k = c * N + i;
-        value += kind === "error"
-          ? Math.abs(example.target[k] / 255 - m.prediction[k])
-          : m.upper[k] - m.lower[k];
-      }
-      rgb = heat(value / 3);
+      rgb = heat(arr[i]);
     } else {
       rgb = [0, 1, 2].map((c) => Math.max(0, Math.min(255,
         arr[c * N + i] * (arr instanceof Uint8Array ? 1 : 255))));
@@ -117,7 +112,7 @@ function paint(canvas, kind, model) {
     img.data[4 * i + 3] = 255;
   }
   ctx.putImageData(img, 0, 0);
-  if (kind !== "measurement") HeatmapPixels.drawCanvas(canvas, point.x + 0.5, point.y + 0.5);
+  if (kind !== "measurement" && $("#pixelInspector").open) HeatmapPixels.drawCanvas(canvas, point.x + 0.5, point.y + 0.5);
   if (kind === "measurement") { canvas.onclick = null; return; }
   canvas.onclick = (e) => {
     const r = canvas.getBoundingClientRect();
@@ -161,8 +156,8 @@ function drawImages() {
 function renderExample() {
   window.exampleBrowser?.update(index);
   const cols = [
-    ["prediction", "Reconstruction"], ["error", "Error"], ["width", "Uncertainty"],
-    ["lower", "Lower"], ["upper", "Upper"],
+    ["prediction", "Reconstruction"], ["error", "Absolute error"], ["width", "Uncertainty"],
+    ["lower", "Lower bound (LB)"], ["upper", "Upper bound (UB)"],
   ];
   const isBound = (kind) => kind === "lower" || kind === "upper";
   let html = `<div class="method-row col-headers"><div class="method-label"></div>` +
@@ -175,14 +170,14 @@ function renderExample() {
       html += `<div class="method-row">${nameDiv}<p class="pending-method">Inference pending.</p></div>`;
       continue;
     }
-    const figures = cols.map(([kind]) =>
-      `<figure class="${isBound(kind) ? "bound-image" : ""}"><canvas class="image" data-kind="${kind}" data-method="${method}"></canvas></figure>`
+    const figures = cols.map(([kind, label]) =>
+      `<figure class="${isBound(kind) ? "bound-image" : ""}"><canvas class="image" aria-label="${NAMES[method]} ${label}" data-kind="${kind}" data-method="${method}"></canvas></figure>`
     ).join("");
     html += `<div class="method-row">${nameDiv}${figures}</div>`;
   }
   $("#matrix").innerHTML = html;
   drawImages();
-  $("#status").textContent = `${index + 1} / ${data.example_count} · ID ${example.id}`;
+  $("#status").textContent = `${index + 1} / ${data.scenes.length} · ${example.id} · Im2im SSIM ${data.scenes[index].ssim.toFixed(3)}`;
 }
 
 async function loadExample() {
@@ -196,8 +191,9 @@ async function loadExample() {
       const loaded = await Promise.all(METHODS.map((m) =>
         unpack(`${assets.base}/${m}/example_${String(index).padStart(2, "0")}.bin.gz`)));
       for (let i = 1; i < loaded.length; i++)
-        if (String(loaded[i].id) !== String(loaded[0].id) || loaded[i].target.length !== loaded[0].target.length)
+        if (String(loaded[i].id) !== String(loaded[0].id) || loaded[i].prediction.length !== loaded[0].target.length)
           throw Error("Example pairing mismatch");
+      if (loaded[0].id !== data.scenes[index].id) throw Error("Scene ID differs from label");
       const shape = loaded[0].arrays.find((d) => d.name === "target").shape;
       item = {
         id: loaded[0].id, width: shape[2], height: shape[1],
@@ -233,24 +229,18 @@ async function loadExample() {
         return r.json();
       })
     );
-    if (data.example_count === 0) {
-      example = makeDemoExample();
-      renderExample();
-      $("#status").textContent = "Layout preview · inference pending";
-      controls(true);
-      return;
-    }
     const params = new URLSearchParams(location.search);
-    index = Math.max(0, Math.min(data.example_count - 1, Number(params.get("example")) || 0));
-    $("#example").innerHTML = Array.from({ length: data.example_count }, (_, i) =>
-      `<option value="${i}">${i + 1}</option>`).join("");
+    index = Math.max(0, Math.min(data.scenes.length - 1, Math.trunc(Number(params.get("example"))) || 0));
+    $("#example").innerHTML = Array.from({ length: data.scenes.length }, (_, i) =>
+      `<option value="${i}">${data.scenes[i].objects}</option>`).join("");
     $("#example").value = index;
     $("#example").onchange = () => { index = Number($("#example").value); loadExample(); };
-    $("#next").onclick = () => { index = (index + 1) % data.example_count; $("#example").value = index; loadExample(); };
-    $("#previous").onclick = () => { index = (index + data.example_count - 1) % data.example_count; $("#example").value = index; loadExample(); };
-    $("#random").onclick = () => { index = Math.floor(Math.random() * data.example_count); $("#example").value = index; loadExample(); };
+    $("#next").onclick = () => { index = (index + 1) % data.scenes.length; $("#example").value = index; loadExample(); };
+    $("#previous").onclick = () => { index = (index + data.scenes.length - 1) % data.scenes.length; $("#example").value = index; loadExample(); };
+    $("#random").onclick = () => { index = Math.floor(Math.random() * data.scenes.length); $("#example").value = index; loadExample(); };
     $("#channel").onchange = renderPixel;
-    $("#showBounds").onclick = () => { const on = $("#matrix").classList.toggle("show-bounds"); $("#showBounds").classList.toggle("active", on); };
+    $("#pixelInspector").ontoggle = drawImages;
+    $("#showBounds").onclick = () => { const on = $("#matrix").classList.toggle("show-bounds"); $("#showBounds").setAttribute("aria-expanded", on); $("#showBounds").textContent = on ? "Hide bounds" : "Show bounds"; };
     loadExample();
   } catch (e) {
     $("#status").textContent = "Could not load results: " + e.message;

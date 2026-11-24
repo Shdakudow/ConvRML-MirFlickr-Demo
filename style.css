@@ -62,17 +62,8 @@ figure:has(.dropout-bound) canvas { outline: 1px solid #718297; outline-offset: 
 
 /* W/o GT — video */
 .vid-controls{display:flex;align-items:center;gap:14px;margin-bottom:10px;font-size:13px;color:#c1d2e3}
-.vid-layout{display:flex;gap:6px;align-items:flex-start}
-.vid-input-col,.vid-model-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
-.vid-col-header{font-size:12px;font-weight:600;padding:3px 0;min-height:36px}
-.vid-col-header .wgt-avg-width{margin-top:1px}
-.vid-input-col>canvas{width:100%;aspect-ratio:480/270;display:block;background:#05080d;border-radius:3px}
-.vid-model-col figure{margin:0}
-.vid-model-col figcaption{font-size:11px;color:#c1d2e3;padding:3px 0}
-.vid-model-col canvas{width:100%;aspect-ratio:480/270;display:block;background:#05080d;border-radius:3px}
-.vid-scrubber{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;color:#9cb0c5}
-.vid-scrubber input[type=range]{flex:1;min-width:0}
-/* UB/LB toggle — video */
-.vid-model-col .bound-figure{display:none}
-#vid-layout.show-bounds .vid-model-col .bound-figure{display:block}
-#vid-layout.show-bounds .vid-model-col figure:not(.bound-figure){display:none}
+.vid-scrubber{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:#9cb0c5}
+.vid-scrubber input[type=range]{flex:1;min-width:0;max-width:320px}
+/* UB/LB toggle — video (reuses .wgt-method structure from pictures) */
+#vid-layout.show-bounds .wgt-method .bound-figure{display:block}
+#vid-layout.show-bounds .wgt-method figure:not(.bound-figure){display:none}

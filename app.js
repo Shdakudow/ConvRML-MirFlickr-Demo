@@ -259,26 +259,32 @@ function initWGTPictures() {
 }
 
 function initVideoLayout() {
+  const rows = [["qutcc", "im2im"], ["deepensemble", "mcdropout"]];
   $("#vid-layout").innerHTML =
-    `<div class="vid-input-col">
-      <div class="vid-col-header">Input</div>
-      <canvas id="vid-measurement" width="480" height="270"></canvas>
+    `<section class="wgt-input-section">
+      <figure><figcaption>Camera input</figcaption><canvas id="vid-measurement" width="480" height="270"></canvas></figure>
       <div class="vid-scrubber">
         <input type="range" id="vid-frame" min="0" max="0" value="0" disabled>
         <span id="vid-frame-label">– / –</span>
       </div>
-    </div>` +
-    METHODS.map(method => `
-      <div class="vid-model-col" data-method="${method}">
-        <div class="vid-col-header" style="color:${COLORS[method]}">
-          ${NAMES[method]}
-          <span class="wgt-avg-width">(avg width: N/A)</span>
-        </div>
-        <figure><figcaption>Reconstruction</figcaption><canvas data-kind="prediction" data-method="${method}" width="480" height="270"></canvas></figure>
-        <figure><figcaption>Uncertainty</figcaption><canvas data-kind="width" data-method="${method}" width="480" height="270"></canvas></figure>
-        <figure class="bound-figure"><figcaption>Upper bound (UB)</figcaption><canvas data-kind="upper" data-method="${method}" width="480" height="270"></canvas></figure>
-        <figure class="bound-figure"><figcaption>Lower bound (LB)</figcaption><canvas data-kind="lower" data-method="${method}" width="480" height="270"></canvas></figure>
-      </div>`).join("");
+    </section>
+    <div class="wgt-grid">` +
+    rows.map(pair =>
+      `<div class="wgt-row">${pair.map(method => `
+        <div class="wgt-method">
+          <div class="wgt-method-header">
+            <span class="wgt-method-name" style="color:${COLORS[method]}">${NAMES[method]}</span>
+            <span class="wgt-avg-width">(avg width: N/A)</span>
+          </div>
+          <div class="wgt-pair">
+            <figure><figcaption>Reconstruction</figcaption><canvas data-kind="prediction" data-method="${method}" width="480" height="270"></canvas></figure>
+            <figure><figcaption>Uncertainty</figcaption><canvas data-kind="width" data-method="${method}" width="480" height="270"></canvas></figure>
+            <figure class="bound-figure"><figcaption>Upper bound (UB)</figcaption><canvas data-kind="upper" data-method="${method}" width="480" height="270"></canvas></figure>
+            <figure class="bound-figure"><figcaption>Lower bound (LB)</figcaption><canvas data-kind="lower" data-method="${method}" width="480" height="270"></canvas></figure>
+          </div>
+        </div>`).join("")}</div>`
+    ).join("") +
+    `</div>`;
 }
 
 (async () => {

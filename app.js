@@ -6,6 +6,7 @@ const $ = (s) => document.querySelector(s);
 let data, assets, index = 0, example = null, busy = false,
   point = { x: 240, y: 135 }, requestSerial = 0;
 const CACHE = new Map();
+const exportVersion = { mcdropout: "?v=gaussian50", deepensemble: "?v=ensemble-grid-49" };
 
 function controls(disabled) {
   window.exampleBrowser?.setBusy(disabled);
@@ -204,7 +205,7 @@ async function loadExample() {
     let item = CACHE.get(key);
     if (!item) {
       const loaded = await Promise.all(METHODS.map((m) =>
-        unpack(`${assets.base}/${m}/example_${String(index).padStart(2, "0")}.bin.gz${m === "mcdropout" ? "?v=gaussian50" : ""}`)));
+        unpack(`${assets.base}/${m}/example_${String(index).padStart(2, "0")}.bin.gz${exportVersion[m] ?? ""}`)));
       for (let i = 1; i < loaded.length; i++)
         if (String(loaded[i].id) !== String(loaded[0].id) || loaded[i].prediction.length !== loaded[0].target.length)
           throw Error("Example pairing mismatch");

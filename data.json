@@ -39,7 +39,8 @@
     },
     "deepensemble": {
       "epoch": 49,
-      "sha256": "9b2121bb7fd1005a00c6da0142a32139f38ff06a50f434c070a244f8bd72bf3a"
+      "sha256": "9b2121bb7fd1005a00c6da0142a32139f38ff06a50f434c070a244f8bd72bf3a",
+      "interval_scale": 0.8908908367156982
     },
     "mcdropout": {
       "stochastic_passes": 50,

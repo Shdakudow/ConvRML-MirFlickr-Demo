@@ -267,11 +267,11 @@ function initVideoLayout() {
   $("#vid-layout").innerHTML =
     `<section class="wgt-input-section">
       <figure><figcaption>Camera input</figcaption><canvas id="vid-measurement" width="480" height="270"></canvas></figure>
-      <div class="vid-scrubber">
-        <input type="range" id="vid-frame" min="0" max="0" value="0" disabled>
-        <span id="vid-frame-label">– / –</span>
-      </div>
     </section>
+    <div class="vid-scrubber">
+      <input type="range" id="vid-frame" min="0" max="0" value="0" disabled>
+      <span id="vid-frame-label">– / –</span>
+    </div>
     <div class="wgt-grid">` +
     rows.map(pair =>
       `<div class="wgt-row">${pair.map(method => `

@@ -62,8 +62,10 @@ figure:has(.dropout-bound) canvas { outline: 1px solid #718297; outline-offset: 
 
 /* W/o GT — video */
 .vid-controls{display:flex;align-items:center;gap:14px;margin-bottom:10px;font-size:13px;color:#c1d2e3}
-.vid-scrubber{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:#9cb0c5}
-.vid-scrubber input[type=range]{flex:1;min-width:0;max-width:320px}
+.vid-scrubber{display:flex;align-items:center;gap:12px;padding:10px 0;font-size:12px;color:#9cb0c5}
+.vid-scrubber input[type=range]{flex:1;min-width:0;height:20px;accent-color:#63dbce;cursor:grab}
+.vid-scrubber input[type=range]:active{cursor:grabbing}
+.vid-scrubber input[type=range]:disabled{opacity:.45;cursor:default}
 /* UB/LB toggle — video (reuses .wgt-method structure from pictures) */
 #vid-layout.show-bounds .wgt-method .bound-figure{display:block}
 #vid-layout.show-bounds .wgt-method figure:not(.bound-figure){display:none}

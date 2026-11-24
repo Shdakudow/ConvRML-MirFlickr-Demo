@@ -8,6 +8,7 @@ function initUnpaired() {
   const nextPicture = pictures.querySelector("#capture-next");
   const sigma = pictures.querySelector("#wgt-blur");
   const sequence = videos.querySelector("#sequence-select");
+  const nextVideo = videos.querySelector("#sequence-next");
   const play = videos.querySelector("#vid-play");
   const slider = videos.querySelector("#vid-frame");
   const label = videos.querySelector("#vid-frame-label");
@@ -136,6 +137,10 @@ function initUnpaired() {
   nextPicture.onclick = () => {
     capture.selectedIndex = (capture.selectedIndex + 1) % capture.length;
     showPicture();
+  };
+  nextVideo.onclick = () => {
+    sequence.selectedIndex = (sequence.selectedIndex + 1) % sequence.length;
+    showVideo();
   };
   capture.onchange = sigma.onchange = showPicture;
   sequence.onchange = showVideo;

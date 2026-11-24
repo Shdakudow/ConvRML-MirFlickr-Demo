@@ -182,6 +182,10 @@ function renderExample() {
       const widths = rawMap(m, "width");
       const mean = widths.reduce((sum, width) => sum + width, 0) / widths.length;
       widthLabel = `<small class="mean-width" title="Mean upper minus lower bound across all pixels and RGB channels">Mean width ${mean.toFixed(4)}</small>`;
+      const { ssim, psnr, lpips } = data.scenes[index].metrics[method];
+      widthLabel += `<small class="mean-width">SSIM ${ssim.toFixed(4)}</small>
+        <small class="mean-width">PSNR ${psnr.toFixed(2)} dB</small>
+        <small class="mean-width">LPIPS ${lpips.toFixed(4)}</small>`;
     }
     const nameDiv = `<div class="method-label" style="color:${COLORS[method]}">${NAMES[method]}${widthLabel}</div>`;
     if (!m) {

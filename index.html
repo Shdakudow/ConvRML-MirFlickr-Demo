@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="example-browser.css">
 <script src="heatmap-pixels.js"></script>
 <script src="example-browser.js"></script>
-<script defer src="app.js?v=ensemble-grid-49"></script>
+<script defer src="app.js?v=blur-zero"></script>
 </head>
 <body>
 <header>
@@ -38,7 +38,7 @@
       <span class="gradient" aria-hidden="true"></span>
       <span>0 → 1 (error and width)</span>
     </div>
-    <label>Blur σ <select id="blur"><option value="1">1 px</option><option value="1.5">1.5 px</option><option value="2">2 px</option><option value="2.5">2.5 px</option></select></label>
+    <label>Blur σ <select id="blur"><option value="0">0 px (no blur)</option><option value="1" selected>1 px</option><option value="1.5">1.5 px</option><option value="2">2 px</option><option value="2.5">2.5 px</option></select></label>
     <button id="showBounds" class="bounds-toggle" aria-controls="matrix" aria-expanded="false">Show bounds</button>
   </div>
   <div class="matrix-scroll"><div id="matrix" class="matrix"></div></div>

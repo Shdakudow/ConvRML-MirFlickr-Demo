@@ -46,9 +46,8 @@ function heat(v) {
 }
 
 // Smooth scalar values before coloring, with a 2-pixel Gaussian and replicated edges.
-function smoothMap(values, width, height) {
-  const sigma = 2;
-  const radius = 3 * sigma;
+function smoothMap(values, sigma, width, height) {
+  const radius = Math.max(1, Math.round(3 * sigma));
   const weights = Array.from({length: 2 * radius + 1}, (_, i) => Math.exp(-((i - radius) ** 2) / (2 * sigma ** 2)));
   const sum = weights.reduce((a, b) => a + b, 0);
   const horizontal = new Float32Array(values.length);
@@ -94,9 +93,11 @@ function rawMap(model, kind) {
 
 function displayMap(model, kind) {
   const raw = rawMap(model, kind);
-  if ($("#blur").getAttribute("aria-pressed") !== "true") return raw;
+  const sigma = Number($("#blur").value);
+  if (!sigma) return raw;
   model.smoothed ??= {};
-  return model.smoothed[kind] ??= smoothMap(raw, example.width, example.height);
+  model.smoothed[sigma] ??= {};
+  return model.smoothed[sigma][kind] ??= smoothMap(raw, sigma, example.width, example.height);
 }
 
 function paint(canvas, kind, model) {
@@ -255,15 +256,10 @@ async function loadExample() {
     $("#random").onclick = () => { index = Math.floor(Math.random() * data.scenes.length); $("#example").value = index; loadExample(); };
     $("#channel").onchange = renderPixel;
     $("#pixelInspector").ontoggle = drawImages;
-    $("#blur").onclick = () => {
-      const button = $("#blur");
-      const enabled = button.getAttribute("aria-pressed") !== "true";
-      button.setAttribute("aria-pressed", String(enabled));
-      button.textContent = (enabled ? "Disable" : "Enable") + " Gaussian blur (σ = 2 px)";
-      if (example) {
+    $("#blur").onchange = () => {
+      if (example)
         for (const canvas of document.querySelectorAll('[data-kind="width"], [data-kind="error"]'))
           paint(canvas, canvas.dataset.kind, canvas.dataset.method);
-      }
     };
     $("#showBounds").onclick = () => { const on = $("#matrix").classList.toggle("show-bounds"); $("#showBounds").setAttribute("aria-expanded", on); $("#showBounds").textContent = on ? "Hide bounds" : "Show bounds"; };
     loadExample();

@@ -84,15 +84,25 @@ function initUnpaired() {
         const {method,kind} = canvas.dataset;
         const column = method ? ["prediction","width","upper","lower"].indexOf(kind) : 0;
         const row = method ? meta.models.indexOf(method) + 1 : 0;
-        return {ctx:canvas.getContext("2d"), x:480*column, y:270*row};
+        return {ctx:canvas.getContext("2d"), x:480*column, y:270*row, canvas};
       });
+      // Cache label nodes once so draw() never queries the DOM.
+      const widthNodes = [...videos.querySelectorAll("#vid-layout .wgt-method")].map(card => ({
+        node: card.querySelector(".wgt-avg-width"),
+        modelIdx: meta.models.indexOf(card.querySelector("[data-method]").dataset.method),
+      }));
       function draw(time) {
         if (request !== videoRequest || video.readyState < 2) return;
         const frame = Math.min(meta.names.length-1, Math.floor(time*meta.fps + 0.0001));
-        tiles.forEach(({ctx,x,y}) => ctx.drawImage(video,x,y,480,270,0,0,480,270));
+        // Skip canvases hidden by display:none (bound-figures when toggle is off).
+        tiles.forEach(({ctx,x,y,canvas}) => {
+          if (canvas.offsetParent !== null) ctx.drawImage(video,x,y,480,270,0,0,480,270);
+        });
         slider.value = frame;
         label.textContent = (frame+1) + " / " + meta.names.length;
-        showWidths(videos,meta,frame);
+        widthNodes.forEach(({node,modelIdx}) => {
+          node.textContent = "Mean width " + meta.widths[frame][modelIdx].toFixed(4);
+        });
       }
       function tick() {
         if (request !== videoRequest) return;

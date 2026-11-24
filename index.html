@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="example-browser.css">
 <script src="heatmap-pixels.js"></script>
 <script src="example-browser.js"></script>
-<script defer src="unpaired.js"></script>
+<script defer src="unpaired.js?v=next-picture"></script>
 <script defer src="app.js?v=scene-metrics-unpaired"></script>
 </head>
 <body>
@@ -87,6 +87,7 @@
 
     <div id="wgt-pictures" class="subtab-panel active">
       <label>Picture <select id="capture-select"></select></label>
+      <button type="button" id="capture-next" disabled>Next</button>
       <span id="capture-status" role="status"></span>
       <section class="wgt-input-section">
         <figure><figcaption>Camera input</figcaption><canvas id="wgt-measurement" width="480" height="270"></canvas></figure>

@@ -5,6 +5,7 @@ function initUnpaired() {
   const pictures = document.querySelector("#wgt-pictures");
   const videos = document.querySelector("#wgt-video");
   const capture = pictures.querySelector("#capture-select");
+  const nextPicture = pictures.querySelector("#capture-next");
   const sigma = pictures.querySelector("#wgt-blur");
   const sequence = videos.querySelector("#sequence-select");
   const play = videos.querySelector("#vid-play");
@@ -37,6 +38,7 @@ function initUnpaired() {
         if (request !== pictureRequest) return;
         stills = meta;
         capture.replaceChildren(...meta.names.map(n => new Option(n.replaceAll("_"," "), n)));
+        nextPicture.disabled = capture.length < 2;
       }
       const name = capture.value;
       const folder = base + "/stills/" + name + "/";
@@ -131,6 +133,10 @@ function initUnpaired() {
       if (visible && !stills) showPicture();
     }
   }
+  nextPicture.onclick = () => {
+    capture.selectedIndex = (capture.selectedIndex + 1) % capture.length;
+    showPicture();
+  };
   capture.onchange = sigma.onchange = showPicture;
   sequence.onchange = showVideo;
   document.querySelectorAll(".page-tab, .subtab").forEach(btn => btn.addEventListener("click", activate));

@@ -67,3 +67,8 @@ figure:has(.dropout-bound) canvas { outline: 1px solid #718297; outline-offset: 
 /* UB/LB toggle — video (reuses .wgt-method structure from pictures) */
 #vid-layout.show-bounds .wgt-method .bound-figure{display:block}
 #vid-layout.show-bounds .wgt-method figure:not(.bound-figure){display:none}
+
+@media (max-width: 650px) {
+  .wgt-row { flex-direction: column; }
+  .vid-controls { flex-wrap: wrap; }
+}

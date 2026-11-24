@@ -353,6 +353,7 @@ function initVideoLayout() {
 
     initWGTPictures();
     initVideoLayout();
+    initUnpaired();
     loadExample();
   } catch (e) {
     $("#status").textContent = "Could not load results: " + e.message;

@@ -4,18 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MIRFLICKR · Reconstruction &amp; Uncertainty</title>
-<link rel="stylesheet" href="style.css?v=wgt">
+<link rel="stylesheet" href="style.css?v=unpaired-1">
 <link rel="stylesheet" href="heatmap-pixels.css">
 <link rel="stylesheet" href="example-browser.css">
 <script src="heatmap-pixels.js"></script>
 <script src="example-browser.js"></script>
-<script defer src="app.js?v=scene-metrics"></script>
+<script defer src="unpaired.js"></script>
+<script defer src="app.js?v=scene-metrics-unpaired"></script>
 </head>
 <body>
 <header>
 <p class="eyebrow">MIRFLICKR · LENSLESS IMAGING</p>
-<h1>Hard test scenes</h1>
-<p>Four held-out MIRFLICKR scenes with the lowest Im2im reconstruction SSIM among 32 randomly sampled test images (seed 777).</p>
+<h1>MIRFLICKR reconstruction and uncertainty</h1>
+
 </header>
 <main>
 <nav class="page-tabs" role="tablist">
@@ -24,6 +25,7 @@
 </nav>
 
 <div id="tab-with-gt" class="tab-panel active">
+<p>Four held-out MIRFLICKR scenes with the lowest Im2im reconstruction SSIM among 32 randomly sampled test images (seed 777).</p>
 <nav class="controls">
   <label>Objects <select id="example"></select></label>
   <button id="previous" aria-label="Previous">←</button>
@@ -76,6 +78,7 @@
 </div><!-- #tab-with-gt -->
 
 <div id="tab-without-gt" class="tab-panel">
+  <p>External DiffuserCam captures reconstructed with four MIRFLICKR-trained models. Uncertainty is the RGB mean interval width on a shared 0–1 color scale. Magenta marks pixels where bounds cross in any channel.</p>
   <div class="subtab-container">
     <nav class="subtabs" role="tablist">
       <button class="subtab active" role="tab" data-subtab="wgt-pictures">Pictures</button>
@@ -83,11 +86,14 @@
     </nav>
 
     <div id="wgt-pictures" class="subtab-panel active">
+      <label>Picture <select id="capture-select"></select></label>
+      <span id="capture-status" role="status"></span>
       <section class="wgt-input-section">
         <figure><figcaption>Camera input</figcaption><canvas id="wgt-measurement" width="480" height="270"></canvas></figure>
       </section>
       <div class="wgt-controls">
         <label>Blur σ <select id="wgt-blur">
+          <option value="0">0 px (no blur)</option>
           <option value="1">1 px</option>
           <option value="1.5">1.5 px</option>
           <option value="2" selected>2 px</option>
@@ -100,9 +106,16 @@
 
     <div id="wgt-video" class="subtab-panel">
       <div class="vid-controls">
+        <label>Sequence <select id="sequence-select">
+          <option value="video1">Video 1</option><option value="video4">Video 4</option>
+          <option value="video6">Video 6</option><option value="video7">Video 7</option><option value="video10">Video 10</option>
+        </select></label>
+        <button id="vid-play" disabled>Play</button>
+        <span id="sequence-status" role="status"></span>
         <button id="vid-show-bounds" class="bounds-toggle" aria-expanded="false">Show UB / LB</button>
       </div>
       <div id="vid-layout" class="vid-layout"></div>
+      <p class="hint">Playback uses 20 frames per second. Mean width is calculated from the original bounds for the displayed frame.</p>
     </div>
   </div>
 </div><!-- #tab-without-gt -->

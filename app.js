@@ -145,7 +145,7 @@ function renderPixel() {
   $("#pixelTitle").textContent = `Selected pixel (${point.x}, ${point.y})`;
   $("#pixelTruth").textContent =
     `Ground truth: ${target.toFixed(6)} · ${ch === "rgb" ? "RGB average" : ["Red", "Green", "Blue"][Number(ch)]}`;
-  $("#pixelSpread").textContent = "MC dropout SD across 30 passes (RGB mean): " + example.models.mcdropout.spread[p].toFixed(6);
+  $("#pixelSpread").textContent = "MC dropout SD across 50 passes (RGB mean): " + example.models.mcdropout.spread[p].toFixed(6);
   $("#pixelRows").innerHTML = METHODS.map((method) => {
     const m = example.models[method];
     if (!m) return `<tr><td>${NAMES[method]}</td><td colspan="5">Inference pending</td></tr>`;
@@ -204,7 +204,7 @@ async function loadExample() {
     let item = CACHE.get(key);
     if (!item) {
       const loaded = await Promise.all(METHODS.map((m) =>
-        unpack(`${assets.base}/${m}/example_${String(index).padStart(2, "0")}.bin.gz${m === "mcdropout" ? "?v=gaussian30" : ""}`)));
+        unpack(`${assets.base}/${m}/example_${String(index).padStart(2, "0")}.bin.gz${m === "mcdropout" ? "?v=gaussian50" : ""}`)));
       for (let i = 1; i < loaded.length; i++)
         if (String(loaded[i].id) !== String(loaded[0].id) || loaded[i].prediction.length !== loaded[0].target.length)
           throw Error("Example pairing mismatch");

@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="example-browser.css">
 <script src="heatmap-pixels.js"></script>
 <script src="example-browser.js"></script>
-<script defer src="app.js?v=gaussian30"></script>
+<script defer src="app.js?v=gaussian50"></script>
 </head>
 <body>
 <header>
@@ -42,7 +42,7 @@
     <button id="showBounds" class="bounds-toggle" aria-controls="matrix" aria-expanded="false">Show bounds</button>
   </div>
   <div class="matrix-scroll"><div id="matrix" class="matrix"></div></div>
-  <p class="hint">MC dropout bounds show the mean ± 1.645 standard deviations across 30 predictions per RGB channel (nominal 90% Gaussian interval). Click a pixel to inspect its unsmoothed values. <span class="badge">Display: clipped [0,1]</span></p>
+  <p class="hint">MC dropout bounds show the mean ± 1.645 standard deviations across 50 predictions per RGB channel (nominal 90% Gaussian interval). Click a pixel to inspect its unsmoothed values. <span class="badge">Display: clipped [0,1]</span></p>
 
   <details id="pixelInspector">
     <summary>Inspect a pixel</summary>

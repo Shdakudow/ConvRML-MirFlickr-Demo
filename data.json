@@ -42,6 +42,7 @@
       "sha256": "9b2121bb7fd1005a00c6da0142a32139f38ff06a50f434c070a244f8bd72bf3a"
     },
     "mcdropout": {
+      "stochastic_passes": 50,
       "epoch": 44,
       "sha256": "4b2ac9a264e9db33516b58235706a2e0498a69a8b5524a97ce046b6a907ebc92"
     }

@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="example-browser.css">
 <script src="heatmap-pixels.js"></script>
 <script src="example-browser.js"></script>
-<script defer src="app.js"></script>
+<script defer src="app.js?v=spread"></script>
 </head>
 <body>
 <header>
@@ -33,15 +33,16 @@
 
 <section aria-label="Model outputs">
   <div class="guide">
-    <div><b>Absolute error</b> = |ground truth − prediction| &nbsp; <b>Uncertainty</b> = upper − lower<br>Both maps show the RGB mean with Gaussian smoothing (σ = 2 image pixels).</div>
+    <div><b>Absolute error</b> = |ground truth − prediction| &nbsp; <b>Calibrated width</b> = upper − lower<br>Maps show the RGB mean. MC dropout also shows the standard deviation across 30 predictions.</div>
     <div class="map-key">
       <span class="gradient" aria-hidden="true"></span>
-      <span>0 → 1</span>
+      <span>0 → 1 (error and width)</span>
     </div>
+    <button id="blur" type="button" aria-pressed="false">Enable Gaussian blur (σ = 2 px)</button>
     <button id="showBounds" class="bounds-toggle" aria-controls="matrix" aria-expanded="true">Hide bounds</button>
   </div>
   <div class="matrix-scroll"><div id="matrix" class="matrix show-bounds"></div></div>
-  <p class="hint">MC dropout spans [0, 1] across these scenes, so its uncertainty map is uniform. Click a pixel to inspect its unsmoothed values. <span class="badge">Display: clipped [0,1]</span></p>
+  <p class="hint">MC dropout’s lower and upper bounds are 0 and 1 throughout these scenes. Select “30-pass SD” in its row to see where predictions vary. Click a pixel to inspect its unsmoothed values. <span class="badge">Display: clipped [0,1]</span></p>
 
   <details id="pixelInspector">
     <summary>Inspect a pixel</summary>
@@ -56,6 +57,7 @@
         </select>
       </label>
       <p id="pixelTruth"></p>
+      <p id="pixelSpread"></p>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Model</th><th>Prediction</th><th>Lower</th><th>Upper</th><th>Error</th><th>Width</th></tr></thead>

@@ -6,6 +6,8 @@ const $ = (s) => document.querySelector(s);
 let data, assets, index = 0, example = null, busy = false,
   point = { x: 240, y: 135 }, requestSerial = 0;
 const CACHE = new Map();
+let dropoutMap = "spread";
+const spreadScale = 0.05;
 
 function controls(disabled) {
   window.exampleBrowser?.setBusy(disabled);
@@ -76,7 +78,7 @@ function smoothMap(values, width, height) {
   return result;
 }
 
-function displayMap(model, kind) {
+function rawMap(model, kind) {
   if (model[kind]) return model[kind];
   const {width, height, target} = example;
   const count = width * height;
@@ -88,8 +90,15 @@ function displayMap(model, kind) {
         : model.upper[k] - model.lower[k]) / 3;
     }
   }
-  model[kind] = smoothMap(values, width, height);
-  return model[kind];
+  model[kind] = values;
+  return values;
+}
+
+function displayMap(model, kind) {
+  const raw = rawMap(model, kind);
+  if ($("#blur").getAttribute("aria-pressed") !== "true") return raw;
+  model.smoothed ??= {};
+  return model.smoothed[kind] ??= smoothMap(raw, example.width, example.height);
 }
 
 function paint(canvas, kind, model) {
@@ -98,12 +107,16 @@ function paint(canvas, kind, model) {
   const ctx = canvas.getContext("2d"), img = ctx.createImageData(w, h);
   let arr;
   if (kind === "measurement" || kind === "target") arr = example[kind];
-  else if (kind === "error" || kind === "width") arr = displayMap(example.models[model], kind);
+  else if (kind === "error" || kind === "width") {
+    const map = kind === "width" && model === "mcdropout" ? dropoutMap : kind;
+    arr = displayMap(example.models[model], map);
+  }
   else arr = example.models[model][kind];
+  const scale = kind === "width" && model === "mcdropout" && dropoutMap === "spread" ? spreadScale : 1;
   for (let i = 0; i < N; i++) {
     let rgb;
     if (kind === "error" || kind === "width") {
-      rgb = heat(arr[i]);
+      rgb = heat(arr[i] / scale);
     } else {
       rgb = [0, 1, 2].map((c) => Math.max(0, Math.min(255,
         arr[c * N + i] * (arr instanceof Uint8Array ? 1 : 255))));
@@ -135,6 +148,7 @@ function renderPixel() {
   $("#pixelTitle").textContent = `Selected pixel (${point.x}, ${point.y})`;
   $("#pixelTruth").textContent =
     `Ground truth: ${target.toFixed(6)} · ${ch === "rgb" ? "RGB average" : ["Red", "Green", "Blue"][Number(ch)]}`;
+  $("#pixelSpread").textContent = "MC dropout SD across 30 passes (RGB mean): " + example.models.mcdropout.spread[p].toFixed(6);
   $("#pixelRows").innerHTML = METHODS.map((method) => {
     const m = example.models[method];
     if (!m) return `<tr><td>${NAMES[method]}</td><td colspan="5">Inference pending</td></tr>`;
@@ -170,12 +184,26 @@ function renderExample() {
       html += `<div class="method-row">${nameDiv}<p class="pending-method">Inference pending.</p></div>`;
       continue;
     }
-    const figures = cols.map(([kind, label]) =>
-      `<figure class="${isBound(kind) ? "bound-image" : ""}"><canvas class="image" aria-label="${NAMES[method]} ${label}" data-kind="${kind}" data-method="${method}"></canvas></figure>`
-    ).join("");
+    const figures = cols.map(([kind, label]) => {
+      const dropoutControl = method === "mcdropout" && kind === "width"
+        ? `<figcaption><label>Map <select id="dropoutMap"><option value="spread">30-pass SD</option><option value="width">Calibrated width</option></select></label><span id="dropoutScale"></span></figcaption>`
+        : "";
+      return `<figure class="${isBound(kind) ? "bound-image" : ""}"><canvas class="image" aria-label="${NAMES[method]} ${label}" data-kind="${kind}" data-method="${method}"></canvas>${dropoutControl}</figure>`;
+    }).join("");
     html += `<div class="method-row">${nameDiv}${figures}</div>`;
   }
   $("#matrix").innerHTML = html;
+  const selector = $("#dropoutMap");
+  selector.value = dropoutMap;
+  function updateDropoutScale() {
+    $("#dropoutScale").textContent = dropoutMap === "spread" ? "Scale 0–" + spreadScale + "+ SD" : "Scale 0–1 width";
+  }
+  updateDropoutScale();
+  selector.onchange = () => {
+    dropoutMap = selector.value;
+    updateDropoutScale();
+    paint(document.querySelector('[data-method="mcdropout"][data-kind="width"]'), "width", "mcdropout");
+  };
   drawImages();
   $("#status").textContent = `${index + 1} / ${data.scenes.length} · ${example.id} · Im2im SSIM ${data.scenes[index].ssim.toFixed(3)}`;
 }
@@ -189,7 +217,7 @@ async function loadExample() {
     let item = CACHE.get(key);
     if (!item) {
       const loaded = await Promise.all(METHODS.map((m) =>
-        unpack(`${assets.base}/${m}/example_${String(index).padStart(2, "0")}.bin.gz`)));
+        unpack(`${assets.base}/${m}/example_${String(index).padStart(2, "0")}.bin.gz${m === "mcdropout" ? "?v=spread" : ""}`)));
       for (let i = 1; i < loaded.length; i++)
         if (String(loaded[i].id) !== String(loaded[0].id) || loaded[i].prediction.length !== loaded[0].target.length)
           throw Error("Example pairing mismatch");
@@ -240,6 +268,16 @@ async function loadExample() {
     $("#random").onclick = () => { index = Math.floor(Math.random() * data.scenes.length); $("#example").value = index; loadExample(); };
     $("#channel").onchange = renderPixel;
     $("#pixelInspector").ontoggle = drawImages;
+    $("#blur").onclick = () => {
+      const button = $("#blur");
+      const enabled = button.getAttribute("aria-pressed") !== "true";
+      button.setAttribute("aria-pressed", String(enabled));
+      button.textContent = (enabled ? "Disable" : "Enable") + " Gaussian blur (σ = 2 px)";
+      if (example) {
+        for (const canvas of document.querySelectorAll('[data-kind="width"], [data-kind="error"]'))
+          paint(canvas, canvas.dataset.kind, canvas.dataset.method);
+      }
+    };
     $("#showBounds").onclick = () => { const on = $("#matrix").classList.toggle("show-bounds"); $("#showBounds").setAttribute("aria-expanded", on); $("#showBounds").textContent = on ? "Hide bounds" : "Show bounds"; };
     loadExample();
   } catch (e) {

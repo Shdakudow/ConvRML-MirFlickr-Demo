@@ -45,7 +45,7 @@ function heat(v) {
   return stops[i].map((a, k) => Math.round(a + (stops[i + 1][k] - a) * f));
 }
 
-// Smooth scalar values before coloring, with a 2-pixel Gaussian and replicated edges.
+// Applies a separable Gaussian blur to a scalar map. Kernel radius is 3σ; boundary pixels are replicated.
 function smoothMap(values, sigma, width, height) {
   const radius = Math.max(1, Math.round(3 * sigma));
   const weights = Array.from({length: 2 * radius + 1}, (_, i) => Math.exp(-((i - radius) ** 2) / (2 * sigma ** 2)));

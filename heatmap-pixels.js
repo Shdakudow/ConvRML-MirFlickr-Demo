@@ -1,4 +1,5 @@
-/* Click inspection uses numerical sidecars, never colors from PNG/MP4 pixels. */
+/* Pixel inspection overlay for canvas elements.
+   Values are read exclusively from numerical data arrays; rendered pixel colours are never used as a data source. */
 (() => {
   'use strict';
   const root = new URL('./', document.currentScript.src);

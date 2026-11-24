@@ -1,4 +1,5 @@
-/* Shared browsing labels; these never change model metrics or test averages. */
+/* Example browser: difficulty filter, navigation, and URL state synchronisation.
+   Operates on display labels only; does not modify model metrics or test-set statistics. */
 (function () {
   'use strict';
   const names = {easy: 'Easy', medium: 'Medium', hard: 'Hard'};

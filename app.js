@@ -188,7 +188,12 @@ function renderExample() {
       const dropoutControl = method === "mcdropout" && kind === "width"
         ? `<figcaption><label>Map <select id="dropoutMap"><option value="spread">30-pass SD</option><option value="width">Calibrated width</option></select></label><span id="dropoutScale"></span></figcaption>`
         : "";
-      return `<figure class="${isBound(kind) ? "bound-image" : ""}"><canvas class="image" aria-label="${NAMES[method]} ${label}" data-kind="${kind}" data-method="${method}"></canvas>${dropoutControl}</figure>`;
+      const dropoutBound = method === "mcdropout" && isBound(kind);
+      let caption = label;
+      if (dropoutBound && m[kind].every(value => value === m[kind][0])) {
+        caption += ` · ${m[kind][0]} at every pixel`;
+      }
+      return `<figure class="${isBound(kind) ? "bound-image" : ""}"><figcaption class="panel-title${dropoutBound ? " dropout-bound" : ""}">${caption}</figcaption><canvas class="image" aria-label="${NAMES[method]} ${label}" data-kind="${kind}" data-method="${method}"></canvas>${dropoutControl}</figure>`;
     }).join("");
     html += `<div class="method-row">${nameDiv}${figures}</div>`;
   }

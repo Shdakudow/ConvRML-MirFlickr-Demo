@@ -6,7 +6,6 @@ const $ = (s) => document.querySelector(s);
 let data, assets, index = 0, example = null, busy = false,
   point = { x: 240, y: 135 }, requestSerial = 0;
 const CACHE = new Map();
-let dropoutMap = "spread";
 const spreadScale = 0.05;
 
 function controls(disabled) {
@@ -108,11 +107,11 @@ function paint(canvas, kind, model) {
   let arr;
   if (kind === "measurement" || kind === "target") arr = example[kind];
   else if (kind === "error" || kind === "width") {
-    const map = kind === "width" && model === "mcdropout" ? dropoutMap : kind;
+    const map = kind === "width" && model === "mcdropout" ? "spread" : kind;
     arr = displayMap(example.models[model], map);
   }
   else arr = example.models[model][kind];
-  const scale = kind === "width" && model === "mcdropout" && dropoutMap === "spread" ? spreadScale : 1;
+  const scale = kind === "width" && model === "mcdropout" ? spreadScale : 1;
   for (let i = 0; i < N; i++) {
     let rgb;
     if (kind === "error" || kind === "width") {
@@ -185,30 +184,19 @@ function renderExample() {
       continue;
     }
     const figures = cols.map(([kind, label]) => {
-      const dropoutControl = method === "mcdropout" && kind === "width"
-        ? `<figcaption><label>Map <select id="dropoutMap"><option value="spread">30-pass SD</option><option value="width">Calibrated width</option></select></label><span id="dropoutScale"></span></figcaption>`
+      const dropoutCaption = method === "mcdropout" && kind === "width"
+        ? `<figcaption>30-pass SD · scale 0–${spreadScale}+</figcaption>`
         : "";
       const dropoutBound = method === "mcdropout" && isBound(kind);
       let caption = label;
       if (dropoutBound && m[kind].every(value => value === m[kind][0])) {
         caption += ` · ${m[kind][0]} at every pixel`;
       }
-      return `<figure class="${isBound(kind) ? "bound-image" : ""}"><figcaption class="panel-title${dropoutBound ? " dropout-bound" : ""}">${caption}</figcaption><canvas class="image" aria-label="${NAMES[method]} ${label}" data-kind="${kind}" data-method="${method}"></canvas>${dropoutControl}</figure>`;
+      return `<figure class="${isBound(kind) ? "bound-image" : ""}"><figcaption class="panel-title${dropoutBound ? " dropout-bound" : ""}">${caption}</figcaption><canvas class="image" aria-label="${NAMES[method]} ${label}" data-kind="${kind}" data-method="${method}"></canvas>${dropoutCaption}</figure>`;
     }).join("");
     html += `<div class="method-row">${nameDiv}${figures}</div>`;
   }
   $("#matrix").innerHTML = html;
-  const selector = $("#dropoutMap");
-  selector.value = dropoutMap;
-  function updateDropoutScale() {
-    $("#dropoutScale").textContent = dropoutMap === "spread" ? "Scale 0–" + spreadScale + "+ SD" : "Scale 0–1 width";
-  }
-  updateDropoutScale();
-  selector.onchange = () => {
-    dropoutMap = selector.value;
-    updateDropoutScale();
-    paint(document.querySelector('[data-method="mcdropout"][data-kind="width"]'), "width", "mcdropout");
-  };
   drawImages();
   $("#status").textContent = `${index + 1} / ${data.scenes.length} · ${example.id} · Im2im SSIM ${data.scenes[index].ssim.toFixed(3)}`;
 }

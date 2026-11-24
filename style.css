@@ -13,8 +13,6 @@ footer{color:#8c9fb5;font-size:13px;padding-top:12px}
 .method-row { flex-wrap: nowrap; }
 .method-row .method-label { flex: 0 0 7rem; text-align: left; }
 
-#dropoutMap { max-width: 100%; padding: 4px; font-size: 12px; }
-#dropoutScale { display: block; margin-top: 4px; }
 
 .panel-title { display: none; }
 .panel-title.dropout-bound { display: block; order: 1; }

@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MIRFLICKR · Reconstruction &amp; Uncertainty</title>
-<link rel="stylesheet" href="style.css?v=bounds">
+<link rel="stylesheet" href="style.css?v=sd">
 <link rel="stylesheet" href="heatmap-pixels.css">
 <link rel="stylesheet" href="example-browser.css">
 <script src="heatmap-pixels.js"></script>
 <script src="example-browser.js"></script>
-<script defer src="app.js?v=bounds"></script>
+<script defer src="app.js?v=sd"></script>
 </head>
 <body>
 <header>
@@ -33,7 +33,7 @@
 
 <section aria-label="Model outputs">
   <div class="guide">
-    <div><b>Absolute error</b> = |ground truth − prediction| &nbsp; <b>Calibrated width</b> = upper − lower<br>Maps show the RGB mean. MC dropout also shows the standard deviation across 30 predictions.</div>
+    <div><b>Absolute error</b> = |ground truth − prediction| &nbsp; <b>Calibrated width</b> = upper − lower<br>Maps show the RGB mean. The MC dropout uncertainty map shows the standard deviation across 30 predictions.</div>
     <div class="map-key">
       <span class="gradient" aria-hidden="true"></span>
       <span>0 → 1 (error and width)</span>
@@ -42,7 +42,7 @@
     <button id="showBounds" class="bounds-toggle" aria-controls="matrix" aria-expanded="true">Hide bounds</button>
   </div>
   <div class="matrix-scroll"><div id="matrix" class="matrix show-bounds"></div></div>
-  <p class="hint">MC dropout’s lower and upper bounds are 0 and 1 throughout these scenes. Select “30-pass SD” in its row to see where predictions vary. Click a pixel to inspect its unsmoothed values. <span class="badge">Display: clipped [0,1]</span></p>
+  <p class="hint">MC dropout’s lower and upper bounds are 0 and 1 throughout these scenes. Click a pixel to inspect its unsmoothed values. <span class="badge">Display: clipped [0,1]</span></p>
 
   <details id="pixelInspector">
     <summary>Inspect a pixel</summary>

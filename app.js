@@ -318,6 +318,12 @@ function initVideoLayout() {
     };
     $("#showBounds").onclick = () => { const on = $("#matrix").classList.toggle("show-bounds"); $("#showBounds").setAttribute("aria-expanded", on); $("#showBounds").textContent = on ? "Hide bounds" : "Show bounds"; };
 
+    function rememberTab(key, value) {
+      const url = new URL(location.href);
+      url.searchParams.set(key, value);
+      history.replaceState(history.state, "", url);
+    }
+
     // Page tab switching
     document.querySelectorAll(".page-tab").forEach(btn => {
       btn.onclick = () => {
@@ -325,6 +331,7 @@ function initVideoLayout() {
         document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
         btn.classList.add("active");
         document.getElementById(btn.dataset.tab).classList.add("active");
+        rememberTab("tab", btn.dataset.tab);
       };
     });
 
@@ -336,6 +343,7 @@ function initVideoLayout() {
         c.querySelectorAll(".subtab-panel").forEach(p => p.classList.remove("active"));
         btn.classList.add("active");
         document.getElementById(btn.dataset.subtab).classList.add("active");
+        rememberTab("subtab", btn.dataset.subtab);
       };
     });
 
@@ -354,6 +362,11 @@ function initVideoLayout() {
     initWGTPictures();
     initVideoLayout();
     initUnpaired();
+    for (const key of ["subtab", "tab"]) {
+      const saved = params.get(key);
+      if (saved) Array.from(document.querySelectorAll(`[data-${key}]`))
+        .find(button => button.dataset[key] === saved)?.click();
+    }
     loadExample();
   } catch (e) {
     $("#status").textContent = "Could not load results: " + e.message;

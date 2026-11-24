@@ -6,7 +6,6 @@ const $ = (s) => document.querySelector(s);
 let data, assets, index = 0, example = null, busy = false,
   point = { x: 240, y: 135 }, requestSerial = 0;
 const CACHE = new Map();
-const spreadScale = 0.05;
 
 function controls(disabled) {
   window.exampleBrowser?.setBusy(disabled);
@@ -107,15 +106,13 @@ function paint(canvas, kind, model) {
   let arr;
   if (kind === "measurement" || kind === "target") arr = example[kind];
   else if (kind === "error" || kind === "width") {
-    const map = kind === "width" && model === "mcdropout" ? "spread" : kind;
-    arr = displayMap(example.models[model], map);
+    arr = displayMap(example.models[model], kind);
   }
   else arr = example.models[model][kind];
-  const scale = kind === "width" && model === "mcdropout" ? spreadScale : 1;
   for (let i = 0; i < N; i++) {
     let rgb;
     if (kind === "error" || kind === "width") {
-      rgb = heat(arr[i] / scale);
+      rgb = heat(arr[i]);
     } else {
       rgb = [0, 1, 2].map((c) => Math.max(0, Math.min(255,
         arr[c * N + i] * (arr instanceof Uint8Array ? 1 : 255))));
@@ -184,15 +181,12 @@ function renderExample() {
       continue;
     }
     const figures = cols.map(([kind, label]) => {
-      const dropoutCaption = method === "mcdropout" && kind === "width"
-        ? `<figcaption>30-pass SD · scale 0–${spreadScale}+</figcaption>`
-        : "";
       const dropoutBound = method === "mcdropout" && isBound(kind);
       let caption = label;
       if (dropoutBound && m[kind].every(value => value === m[kind][0])) {
         caption += ` · ${m[kind][0]} at every pixel`;
       }
-      return `<figure class="${isBound(kind) ? "bound-image" : ""}"><figcaption class="panel-title${dropoutBound ? " dropout-bound" : ""}">${caption}</figcaption><canvas class="image" aria-label="${NAMES[method]} ${label}" data-kind="${kind}" data-method="${method}"></canvas>${dropoutCaption}</figure>`;
+      return `<figure class="${isBound(kind) ? "bound-image" : ""}"><figcaption class="panel-title${dropoutBound ? " dropout-bound" : ""}">${caption}</figcaption><canvas class="image" aria-label="${NAMES[method]} ${label}" data-kind="${kind}" data-method="${method}"></canvas></figure>`;
     }).join("");
     html += `<div class="method-row">${nameDiv}${figures}</div>`;
   }

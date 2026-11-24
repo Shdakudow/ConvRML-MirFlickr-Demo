@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="example-browser.css">
 <script src="heatmap-pixels.js"></script>
 <script src="example-browser.js"></script>
-<script defer src="app.js?v=sd"></script>
+<script defer src="app.js?v=interval"></script>
 </head>
 <body>
 <header>
@@ -33,7 +33,7 @@
 
 <section aria-label="Model outputs">
   <div class="guide">
-    <div><b>Absolute error</b> = |ground truth − prediction| &nbsp; <b>Calibrated width</b> = upper − lower<br>Maps show the RGB mean. The MC dropout uncertainty map shows the standard deviation across 30 predictions.</div>
+    <div><b>Absolute error</b> = |ground truth − prediction| &nbsp; <b>Uncertainty</b> = upper − lower<br>Both maps show the RGB mean.</div>
     <div class="map-key">
       <span class="gradient" aria-hidden="true"></span>
       <span>0 → 1 (error and width)</span>

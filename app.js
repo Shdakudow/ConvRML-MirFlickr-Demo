@@ -6,7 +6,7 @@ const $ = (s) => document.querySelector(s);
 let data, assets, index = 0, example = null, busy = false,
   point = { x: 240, y: 135 }, requestSerial = 0;
 const CACHE = new Map();
-const exportVersion = { mcdropout: "?v=gaussian50", deepensemble: "?v=ensemble-grid-49" };
+const exportVersion = { mcdropout: "?v=mc-grid-44", deepensemble: "?v=ensemble-grid-49" };
 
 function controls(disabled) {
   window.exampleBrowser?.setBusy(disabled);

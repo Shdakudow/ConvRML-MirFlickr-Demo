@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="example-browser.css">
 <script src="heatmap-pixels.js"></script>
 <script src="example-browser.js"></script>
-<script defer src="app.js?v=blur-zero"></script>
+<script defer src="app.js?v=mc-grid-44"></script>
 </head>
 <body>
 <header>
@@ -42,7 +42,7 @@
     <button id="showBounds" class="bounds-toggle" aria-controls="matrix" aria-expanded="false">Show bounds</button>
   </div>
   <div class="matrix-scroll"><div id="matrix" class="matrix"></div></div>
-  <p class="hint">Deep ensemble bounds use the calibrated multiplier 0.890891. Its uncertainty map shows upper minus lower, averaged over RGB. MC dropout bounds show the mean ± 1.645 standard deviations across 50 predictions per RGB channel (nominal 90% Gaussian interval). Click a pixel to inspect its unsmoothed values. <span class="badge">Display: clipped [0,1]</span></p>
+  <p class="hint">Deep ensemble bounds use the calibrated multiplier 0.890891. MC dropout bounds are the mean ± (3.001501 × 1.645 × SD) across 50 predictions per RGB channel. Uncertainty shows upper minus lower, averaged over RGB. Click a pixel to inspect its unsmoothed values. <span class="badge">Display: clipped [0,1]</span></p>
 
   <details id="pixelInspector">
     <summary>Inspect a pixel</summary>

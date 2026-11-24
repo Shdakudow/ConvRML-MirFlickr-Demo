@@ -45,7 +45,8 @@
     "mcdropout": {
       "stochastic_passes": 50,
       "epoch": 44,
-      "sha256": "4b2ac9a264e9db33516b58235706a2e0498a69a8b5524a97ce046b6a907ebc92"
+      "sha256": "2b202e3e0448d82e8ad4efbbb1aa92757cadd9a34d5ec0fa61e18ff4e1ee1edd",
+      "interval_scale": 3.0015008449554443
     }
   }
 }

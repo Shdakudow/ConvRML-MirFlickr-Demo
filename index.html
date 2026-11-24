@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MIRFLICKR · Reconstruction &amp; Uncertainty</title>
-<link rel="stylesheet" href="style.css?v=mean-width">
+<link rel="stylesheet" href="style.css?v=wgt">
 <link rel="stylesheet" href="heatmap-pixels.css">
 <link rel="stylesheet" href="example-browser.css">
 <script src="heatmap-pixels.js"></script>
 <script src="example-browser.js"></script>
-<script defer src="app.js?v=mean-width"></script>
+<script defer src="app.js?v=wgt"></script>
 </head>
 <body>
 <header>
@@ -18,6 +18,12 @@
 <p>Four held-out MIRFLICKR scenes with the lowest Im2im reconstruction SSIM among 32 randomly sampled test images (seed 777).</p>
 </header>
 <main>
+<nav class="page-tabs" role="tablist">
+  <button class="page-tab active" role="tab" data-tab="tab-with-gt">With ground truth</button>
+  <button class="page-tab" role="tab" data-tab="tab-without-gt">W/o ground truth</button>
+</nav>
+
+<div id="tab-with-gt" class="tab-panel active">
 <nav class="controls">
   <label>Objects <select id="example"></select></label>
   <button id="previous" aria-label="Previous">←</button>
@@ -67,6 +73,39 @@
     </div>
   </details>
 </section>
+</div><!-- #tab-with-gt -->
+
+<div id="tab-without-gt" class="tab-panel">
+  <div class="subtab-container">
+    <nav class="subtabs" role="tablist">
+      <button class="subtab active" role="tab" data-subtab="wgt-pictures">Pictures</button>
+      <button class="subtab" role="tab" data-subtab="wgt-video">Video</button>
+    </nav>
+
+    <div id="wgt-pictures" class="subtab-panel active">
+      <section class="wgt-input-section">
+        <figure><figcaption>Camera input</figcaption><canvas id="wgt-measurement" width="480" height="270"></canvas></figure>
+      </section>
+      <div class="wgt-controls">
+        <label>Blur σ <select id="wgt-blur">
+          <option value="1">1 px</option>
+          <option value="1.5">1.5 px</option>
+          <option value="2" selected>2 px</option>
+          <option value="2.5">2.5 px</option>
+        </select></label>
+        <button id="wgt-show-bounds" class="bounds-toggle" aria-expanded="false">Show UB / LB</button>
+      </div>
+      <div id="wgt-grid" class="wgt-grid"></div>
+    </div>
+
+    <div id="wgt-video" class="subtab-panel">
+      <div class="vid-controls">
+        <button id="vid-show-bounds" class="bounds-toggle" aria-expanded="false">Show UB / LB</button>
+      </div>
+      <div id="vid-layout" class="vid-layout"></div>
+    </div>
+  </div>
+</div><!-- #tab-without-gt -->
 </main>
 <footer>MIRFLICKR · QUTCC / Im2im / Deep ensemble / MC dropout</footer>
 </body>

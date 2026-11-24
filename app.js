@@ -239,6 +239,48 @@ async function loadExample() {
   }
 }
 
+function initWGTPictures() {
+  const rows = [["qutcc", "im2im"], ["deepensemble", "mcdropout"]];
+  $("#wgt-grid").innerHTML = rows.map(pair =>
+    `<div class="wgt-row">${pair.map(method => `
+      <div class="wgt-method">
+        <div class="wgt-method-header">
+          <span class="wgt-method-name" style="color:${COLORS[method]}">${NAMES[method]}</span>
+          <span class="wgt-avg-width">(avg width: N/A)</span>
+        </div>
+        <div class="wgt-pair">
+          <figure><figcaption>Reconstruction</figcaption><canvas data-kind="prediction" data-method="${method}" width="480" height="270"></canvas></figure>
+          <figure><figcaption>Uncertainty</figcaption><canvas data-kind="width" data-method="${method}" width="480" height="270"></canvas></figure>
+          <figure class="bound-figure"><figcaption>Upper bound (UB)</figcaption><canvas data-kind="upper" data-method="${method}" width="480" height="270"></canvas></figure>
+          <figure class="bound-figure"><figcaption>Lower bound (LB)</figcaption><canvas data-kind="lower" data-method="${method}" width="480" height="270"></canvas></figure>
+        </div>
+      </div>`).join("")}</div>`
+  ).join("");
+}
+
+function initVideoLayout() {
+  $("#vid-layout").innerHTML =
+    `<div class="vid-input-col">
+      <div class="vid-col-header">Input</div>
+      <canvas id="vid-measurement" width="480" height="270"></canvas>
+      <div class="vid-scrubber">
+        <input type="range" id="vid-frame" min="0" max="0" value="0" disabled>
+        <span id="vid-frame-label">– / –</span>
+      </div>
+    </div>` +
+    METHODS.map(method => `
+      <div class="vid-model-col" data-method="${method}">
+        <div class="vid-col-header" style="color:${COLORS[method]}">
+          ${NAMES[method]}
+          <span class="wgt-avg-width">(avg width: N/A)</span>
+        </div>
+        <figure><figcaption>Reconstruction</figcaption><canvas data-kind="prediction" data-method="${method}" width="480" height="270"></canvas></figure>
+        <figure><figcaption>Uncertainty</figcaption><canvas data-kind="width" data-method="${method}" width="480" height="270"></canvas></figure>
+        <figure class="bound-figure"><figcaption>Upper bound (UB)</figcaption><canvas data-kind="upper" data-method="${method}" width="480" height="270"></canvas></figure>
+        <figure class="bound-figure"><figcaption>Lower bound (LB)</figcaption><canvas data-kind="lower" data-method="${method}" width="480" height="270"></canvas></figure>
+      </div>`).join("");
+}
+
 (async () => {
   try {
     [data, assets] = await Promise.all(
@@ -261,10 +303,46 @@ async function loadExample() {
     $("#pixelInspector").ontoggle = drawImages;
     $("#blur").onchange = () => {
       if (example)
-        for (const canvas of document.querySelectorAll('[data-kind="width"], [data-kind="error"]'))
+        for (const canvas of document.querySelectorAll('#matrix [data-kind="width"], #matrix [data-kind="error"]'))
           paint(canvas, canvas.dataset.kind, canvas.dataset.method);
     };
     $("#showBounds").onclick = () => { const on = $("#matrix").classList.toggle("show-bounds"); $("#showBounds").setAttribute("aria-expanded", on); $("#showBounds").textContent = on ? "Hide bounds" : "Show bounds"; };
+
+    // Page tab switching
+    document.querySelectorAll(".page-tab").forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll(".page-tab").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.tab).classList.add("active");
+      };
+    });
+
+    // Subtab switching
+    document.querySelectorAll(".subtab").forEach(btn => {
+      btn.onclick = () => {
+        const c = btn.closest(".subtab-container");
+        c.querySelectorAll(".subtab").forEach(b => b.classList.remove("active"));
+        c.querySelectorAll(".subtab-panel").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.subtab).classList.add("active");
+      };
+    });
+
+    // W/o GT toggle buttons
+    $("#wgt-show-bounds").onclick = () => {
+      const on = $("#wgt-grid").classList.toggle("show-bounds");
+      $("#wgt-show-bounds").textContent = on ? "Hide UB / LB" : "Show UB / LB";
+      $("#wgt-show-bounds").setAttribute("aria-expanded", on);
+    };
+    $("#vid-show-bounds").onclick = () => {
+      const on = $("#vid-layout").classList.toggle("show-bounds");
+      $("#vid-show-bounds").textContent = on ? "Hide UB / LB" : "Show UB / LB";
+      $("#vid-show-bounds").setAttribute("aria-expanded", on);
+    };
+
+    initWGTPictures();
+    initVideoLayout();
     loadExample();
   } catch (e) {
     $("#status").textContent = "Could not load results: " + e.message;

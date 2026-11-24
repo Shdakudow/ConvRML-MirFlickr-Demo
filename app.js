@@ -183,10 +183,9 @@ function renderExample() {
     }
     const figures = cols.map(([kind, label]) => {
       const dropoutBound = method === "mcdropout" && isBound(kind);
-      let caption = label;
-      if (dropoutBound && m[kind].every(value => value === m[kind][0])) {
-        caption += ` · ${m[kind][0]} at every pixel`;
-      }
+      const caption = dropoutBound
+        ? `<a href="bounds/${encodeURIComponent(example.id.replace(/\.png$/, ""))}/${kind}.png" download>${label} · PNG</a>`
+        : label;
       return `<figure class="${isBound(kind) ? "bound-image" : ""}"><figcaption class="panel-title${dropoutBound ? " dropout-bound" : ""}">${caption}</figcaption><canvas class="image" aria-label="${NAMES[method]} ${label}" data-kind="${kind}" data-method="${method}"></canvas></figure>`;
     }).join("");
     html += `<div class="method-row">${nameDiv}${figures}</div>`;
@@ -205,7 +204,7 @@ async function loadExample() {
     let item = CACHE.get(key);
     if (!item) {
       const loaded = await Promise.all(METHODS.map((m) =>
-        unpack(`${assets.base}/${m}/example_${String(index).padStart(2, "0")}.bin.gz${m === "mcdropout" ? "?v=spread" : ""}`)));
+        unpack(`${assets.base}/${m}/example_${String(index).padStart(2, "0")}.bin.gz${m === "mcdropout" ? "?v=gaussian30" : ""}`)));
       for (let i = 1; i < loaded.length; i++)
         if (String(loaded[i].id) !== String(loaded[0].id) || loaded[i].prediction.length !== loaded[0].target.length)
           throw Error("Example pairing mismatch");

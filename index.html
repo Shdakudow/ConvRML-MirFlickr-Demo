@@ -39,9 +39,9 @@
       <span>0 → 1 (error and width)</span>
     </div>
     <button id="blur" type="button" aria-pressed="false">Enable Gaussian blur (σ = 2 px)</button>
-    <button id="showBounds" class="bounds-toggle" aria-controls="matrix" aria-expanded="true">Hide bounds</button>
+    <button id="showBounds" class="bounds-toggle" aria-controls="matrix" aria-expanded="false">Show bounds</button>
   </div>
-  <div class="matrix-scroll"><div id="matrix" class="matrix show-bounds"></div></div>
+  <div class="matrix-scroll"><div id="matrix" class="matrix"></div></div>
   <p class="hint">MC dropout’s lower and upper bounds are 0 and 1 throughout these scenes. Click a pixel to inspect its unsmoothed values. <span class="badge">Display: clipped [0,1]</span></p>
 
   <details id="pixelInspector">

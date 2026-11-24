@@ -177,7 +177,13 @@ function renderExample() {
     `</div>`;
   for (const method of METHODS) {
     const m = example.models[method];
-    const nameDiv = `<div class="method-label" style="color:${COLORS[method]}">${NAMES[method]}</div>`;
+    let widthLabel = "";
+    if (m) {
+      const widths = rawMap(m, "width");
+      const mean = widths.reduce((sum, width) => sum + width, 0) / widths.length;
+      widthLabel = `<small class="mean-width" title="Mean upper minus lower bound across all pixels and RGB channels">Mean width ${mean.toFixed(4)}</small>`;
+    }
+    const nameDiv = `<div class="method-label" style="color:${COLORS[method]}">${NAMES[method]}${widthLabel}</div>`;
     if (!m) {
       html += `<div class="method-row">${nameDiv}<p class="pending-method">Inference pending.</p></div>`;
       continue;

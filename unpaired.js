@@ -14,18 +14,24 @@ function initUnpaired() {
   const label = videos.querySelector("#vid-frame-label");
   const pictureStatus = pictures.querySelector("[role=status]");
   const videoStatus = videos.querySelector("[role=status]");
-  let stills, player, pictureRequest = 0, videoRequest = 0;
+  const signed = document.querySelector("#signedWidth");
+  let redrawVideo, stills, player, pictureRequest = 0, videoRequest = 0;
 
   async function manifest(name) {
-    const response = await fetch(base + "/" + name + ".json");
+    const response = await fetch(base + "/" + name + ".json?v=q-width-1");
     if (!response.ok) throw Error("Could not load " + name);
     return response.json();
+  }
+
+  function meanWidth(meta, index, modelIdx) {
+    return meta.models[modelIdx] === "qutcc" && !signed.checked
+      ? meta.qutccAbsWidths[index] : meta.widths[index][modelIdx];
   }
 
   function showWidths(panel, meta, index) {
     panel.querySelectorAll(".wgt-method").forEach(card => {
       const model = card.querySelector("canvas").dataset.method;
-      const width = meta.widths[index][meta.models.indexOf(model)];
+      const width = meanWidth(meta, index, meta.models.indexOf(model));
       card.querySelector(".wgt-avg-width").textContent = "Mean width " + width.toFixed(4);
     });
   }
@@ -46,7 +52,8 @@ function initUnpaired() {
       const canvases = [...pictures.querySelectorAll("canvas")];
       const images = await Promise.all(canvases.map(async canvas => {
         const {method, kind} = canvas.dataset;
-        const key = kind === "width" ? "width-" + sigma.value : kind;
+        const prefix = method === "qutcc" && !signed.checked ? "abs-width-" : "width-";
+        const key = kind === "width" ? prefix + sigma.value : kind;
         const modelFolder = method === "deepensemble" ? "ensemble" : method;
         const image = new Image();
         image.src = folder + (method ? modelFolder + "/" + key + ".png" : "input.png");
@@ -96,14 +103,18 @@ function initUnpaired() {
         const frame = Math.min(meta.names.length-1, Math.floor(time*meta.fps + 0.0001));
         // Skip canvases hidden by display:none (bound-figures when toggle is off).
         tiles.forEach(({ctx,x,y,canvas}) => {
-          if (canvas.offsetParent !== null) ctx.drawImage(video,x,y,480,270,0,0,480,270);
+          if (canvas.offsetParent === null) return;
+          const useAbsoluteTile = canvas.dataset.method === "qutcc" &&
+            canvas.dataset.kind === "width" && !signed.checked;
+          ctx.drawImage(video,x,useAbsoluteTile ? 0 : y,480,270,0,0,480,270);
         });
         slider.value = frame;
         label.textContent = (frame+1) + " / " + meta.names.length;
         widthNodes.forEach(({node,modelIdx}) => {
-          node.textContent = "Mean width " + meta.widths[frame][modelIdx].toFixed(4);
+          node.textContent = "Mean width " + meanWidth(meta,frame,modelIdx).toFixed(4);
         });
       }
+      redrawVideo = () => draw((Number(slider.value) + 0.25) / meta.fps);
       function tick() {
         if (request !== videoRequest) return;
         video.requestVideoFrameCallback((_,info) => { draw(info.mediaTime); tick(); });
@@ -129,7 +140,7 @@ function initUnpaired() {
       slider.max = meta.names.length-1;
       slider.oninput = () => { video.pause(); video.currentTime = (Number(slider.value)+0.25)/meta.fps; };
       video.preload = "auto";
-      video.src = base + "/" + id + ".mp4";
+      video.src = base + "/" + id + ".mp4?v=q-width-1";
     } catch {
       if (request === videoRequest) videoStatus.textContent = "Could not load sequence.";
     }
@@ -139,6 +150,7 @@ function initUnpaired() {
     const visible = document.querySelector("#tab-without-gt").classList.contains("active");
     if (visible && videos.classList.contains("active")) {
       if (!player) showVideo();
+      else redrawVideo?.();
     } else {
       player?.pause();
       if (visible && !stills) showPicture();
@@ -152,7 +164,12 @@ function initUnpaired() {
     sequence.selectedIndex = (sequence.selectedIndex + 1) % sequence.length;
     showVideo();
   };
+  signed.addEventListener("change", () => {
+    if (stills || pictureRequest) showPicture();
+    redrawVideo?.();
+  });
   capture.onchange = sigma.onchange = showPicture;
+  videos.querySelector("#vid-show-bounds").addEventListener("click", () => redrawVideo?.());
   sequence.onchange = showVideo;
   document.querySelectorAll(".page-tab, .subtab").forEach(btn => btn.addEventListener("click", activate));
 }

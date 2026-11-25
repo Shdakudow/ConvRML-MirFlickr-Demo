@@ -9,8 +9,8 @@
 <link rel="stylesheet" href="example-browser.css">
 <script src="heatmap-pixels.js"></script>
 <script src="example-browser.js"></script>
-<script defer src="unpaired.js?v=next-picture"></script>
-<script defer src="app.js?v=remember-tab"></script>
+<script defer src="unpaired.js?v=q-width-1"></script>
+<script defer src="app.js?v=q-width-1"></script>
 </head>
 <body>
 <header>
@@ -23,6 +23,7 @@
   <button class="page-tab active" role="tab" data-tab="tab-with-gt">With ground truth</button>
   <button class="page-tab" role="tab" data-tab="tab-without-gt">W/o ground truth</button>
 </nav>
+<label class="width-mode"><input id="signedWidth" type="checkbox" role="switch" autocomplete="off"> Use signed QUTCC width (UB − LB)</label>
 
 <div id="tab-with-gt" class="tab-panel active">
 <p>Four held-out MIRFLICKR scenes with the lowest Im2im reconstruction SSIM among 32 randomly sampled test images (seed 777).</p>
@@ -41,7 +42,7 @@
 
 <section aria-label="Model outputs">
   <div class="guide">
-    <div><b>Absolute error</b> = |ground truth − prediction| &nbsp; <b>Uncertainty</b> = upper − lower<br>Both maps show the RGB mean.</div>
+    <div><b>Absolute error</b> = |ground truth − prediction| &nbsp; <b>QUTCC width</b> = <span id="widthFormula">|upper − lower|</span><br>Both maps show the RGB mean.</div>
     <div class="map-key">
       <span class="gradient" aria-hidden="true"></span>
       <span>0 → 1 (error and width)</span>
@@ -50,7 +51,7 @@
     <button id="showBounds" class="bounds-toggle" aria-controls="matrix" aria-expanded="false">Show bounds</button>
   </div>
   <div class="matrix-scroll"><div id="matrix" class="matrix"></div></div>
-  <p class="hint">Deep ensemble bounds use the calibrated multiplier 0.890891. MC dropout bounds are the mean ± (3.001501 × 1.645 × SD) across 50 predictions per RGB channel. Uncertainty shows upper minus lower, averaged over RGB. Click a pixel to inspect its unsmoothed values. <span class="badge">Display: clipped [0,1]</span></p>
+  <p class="hint">Deep ensemble bounds use the calibrated multiplier 0.890891. MC dropout bounds are the mean ± (3.001501 × 1.645 × SD) across 50 predictions per RGB channel. Click a pixel to inspect its unsmoothed values. <span class="badge">Display: clipped [0,1]</span></p>
 
   <details id="pixelInspector">
     <summary>Inspect a pixel</summary>
@@ -78,7 +79,7 @@
 </div><!-- #tab-with-gt -->
 
 <div id="tab-without-gt" class="tab-panel">
-  <p>External DiffuserCam captures reconstructed with four MIRFLICKR-trained models. Uncertainty is the RGB mean interval width on a shared 0–1 color scale. Magenta marks pixels where bounds cross in any channel.</p>
+  <p>External DiffuserCam captures reconstructed with four MIRFLICKR-trained models. Uncertainty is the RGB mean interval width on a shared 0–1 color scale. In signed mode, magenta marks QUTCC pixels with crossed bounds.</p>
   <div class="subtab-container">
     <nav class="subtabs" role="tablist">
       <button class="subtab active" role="tab" data-subtab="wgt-pictures">Pictures</button>

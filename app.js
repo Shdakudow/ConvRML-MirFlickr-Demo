@@ -76,7 +76,13 @@ function smoothMap(values, sigma, width, height) {
   return result;
 }
 
+function widthKey(model, kind) {
+  return kind === "width" && model === example.models.qutcc && !$("#signedWidth").checked
+    ? "absoluteWidth" : kind;
+}
+
 function rawMap(model, kind) {
+  kind = widthKey(model, kind);
   if (model[kind]) return model[kind];
   const {width, height, target} = example;
   const count = width * height;
@@ -85,6 +91,7 @@ function rawMap(model, kind) {
     for (let c = 0; c < 3; c++) {
       const k = c * count + i;
       values[i] += (kind === "error" ? Math.abs(target[k] / 255 - model.prediction[k])
+        : kind === "absoluteWidth" ? Math.abs(model.upper[k] - model.lower[k])
         : model.upper[k] - model.lower[k]) / 3;
     }
   }
@@ -98,7 +105,7 @@ function displayMap(model, kind) {
   if (!sigma) return raw;
   model.smoothed ??= {};
   model.smoothed[sigma] ??= {};
-  return model.smoothed[sigma][kind] ??= smoothMap(raw, sigma, example.width, example.height);
+  return model.smoothed[sigma][widthKey(model, kind)] ??= smoothMap(raw, sigma, example.width, example.height);
 }
 
 function paint(canvas, kind, model) {
@@ -111,10 +118,15 @@ function paint(canvas, kind, model) {
     arr = displayMap(example.models[model], kind);
   }
   else arr = example.models[model][kind];
+  const markCrossing = kind === "width" && model === "qutcc" && $("#signedWidth").checked;
+  const qModel = example.models.qutcc;
   for (let i = 0; i < N; i++) {
     let rgb;
     if (kind === "error" || kind === "width") {
       rgb = heat(arr[i]);
+      if (markCrossing && (qModel.lower[i] > qModel.upper[i] ||
+          qModel.lower[N+i] > qModel.upper[N+i] || qModel.lower[2*N+i] > qModel.upper[2*N+i]))
+        rgb = [227,32,201];
     } else {
       rgb = [0, 1, 2].map((c) => Math.max(0, Math.min(255,
         arr[c * N + i] * (arr instanceof Uint8Array ? 1 : 255))));
@@ -152,7 +164,10 @@ function renderPixel() {
     if (!m) return `<tr><td>${NAMES[method]}</td><td colspan="5">Inference pending</td></tr>`;
     const pred = read(m.prediction), lo = read(m.lower), hi = read(m.upper);
     const err = channels.reduce((s, c) => s + Math.abs(example.target[c * N + p] / 255 - m.prediction[c * N + p]), 0) / channels.length;
-    return `<tr><td>${NAMES[method]}</td>${[pred, lo, hi, err, hi - lo].map((v) => `<td>${v.toFixed(6)}</td>`).join("")}</tr>`;
+    const width = method === "qutcc" && !$("#signedWidth").checked
+      ? channels.reduce((sum, c) => sum + Math.abs(m.upper[c*N+p] - m.lower[c*N+p]), 0) / channels.length
+      : hi - lo;
+    return `<tr><td>${NAMES[method]}</td>${[pred, lo, hi, err, width].map((v) => `<td>${v.toFixed(6)}</td>`).join("")}</tr>`;
   }).join("");
 }
 
@@ -181,7 +196,7 @@ function renderExample() {
     if (m) {
       const widths = rawMap(m, "width");
       const mean = widths.reduce((sum, width) => sum + width, 0) / widths.length;
-      widthLabel = `<small class="mean-width" title="Mean upper minus lower bound across all pixels and RGB channels">Mean width ${mean.toFixed(4)}</small>`;
+      widthLabel = `<small class="mean-width" title="Mean width across all pixels and RGB channels">Mean width ${mean.toFixed(4)}</small>`;
       const { ssim, psnr, lpips } = data.scenes[index].metrics[method];
       widthLabel += `<small class="mean-width">SSIM ${ssim.toFixed(4)}</small>
         <small class="mean-width">PSNR ${psnr.toFixed(2)} dB</small>
@@ -362,6 +377,10 @@ function initVideoLayout() {
     initWGTPictures();
     initVideoLayout();
     initUnpaired();
+    $("#signedWidth").addEventListener("change", () => {
+      $("#widthFormula").textContent = $("#signedWidth").checked ? "upper − lower" : "|upper − lower|";
+      if (example) renderExample();
+    });
     for (const key of ["subtab", "tab"]) {
       const saved = params.get(key);
       if (saved) Array.from(document.querySelectorAll(`[data-${key}]`))

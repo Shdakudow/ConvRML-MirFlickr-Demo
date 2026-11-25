@@ -76,15 +76,17 @@ function smoothMap(values, sigma, width, height) {
   return result;
 }
 
-function widthKey(model, kind) {
-  return kind === "width" && model === example.models.qutcc && !$("#signedWidth").checked
+function widthKey(model, kind, ex) {
+  ex ??= example;
+  return kind === "width" && model === ex.models.qutcc && !$("#signedWidth").checked
     ? "absoluteWidth" : kind;
 }
 
-function rawMap(model, kind) {
-  kind = widthKey(model, kind);
+function rawMap(model, kind, ex) {
+  ex ??= example;
+  kind = widthKey(model, kind, ex);
   if (model[kind]) return model[kind];
-  const {width, height, target} = example;
+  const {width, height, target} = ex;
   const count = width * height;
   const values = new Float32Array(count);
   for (let i = 0; i < values.length; i++) {
@@ -99,27 +101,32 @@ function rawMap(model, kind) {
   return values;
 }
 
-function displayMap(model, kind) {
-  const raw = rawMap(model, kind);
-  const sigma = Number($("#blur").value);
+function displayMap(model, kind, ex, blurEl) {
+  ex ??= example;
+  const raw = rawMap(model, kind, ex);
+  const sigma = Number((blurEl ?? $("#blur")).value);
   if (!sigma) return raw;
   model.smoothed ??= {};
   model.smoothed[sigma] ??= {};
-  return model.smoothed[sigma][widthKey(model, kind)] ??= smoothMap(raw, sigma, example.width, example.height);
+  return model.smoothed[sigma][widthKey(model, kind, ex)] ??= smoothMap(raw, sigma, ex.width, ex.height);
 }
 
-function paint(canvas, kind, model) {
-  const { width: w, height: h } = example, N = w * h;
+function paint(canvas, kind, model, pctx) {
+  const ex = pctx?.ex ?? example;
+  const blurEl = pctx?.blurEl ?? null;
+  const inspectorEl = pctx?.inspectorEl ?? $("#pixelInspector");
+  const pt = pctx?.pt ?? point;
+  const { width: w, height: h } = ex, N = w * h;
   canvas.width = w; canvas.height = h;
   const ctx = canvas.getContext("2d"), img = ctx.createImageData(w, h);
   let arr;
-  if (kind === "measurement" || kind === "target") arr = example[kind];
+  if (kind === "measurement" || kind === "target") arr = ex[kind];
   else if (kind === "error" || kind === "width") {
-    arr = displayMap(example.models[model], kind);
+    arr = displayMap(ex.models[model], kind, ex, blurEl);
   }
-  else arr = example.models[model][kind];
+  else arr = ex.models[model][kind];
   const markCrossing = kind === "width" && model === "qutcc" && $("#signedWidth").checked;
-  const qModel = example.models.qutcc;
+  const qModel = ex.models.qutcc;
   for (let i = 0; i < N; i++) {
     let rgb;
     if (kind === "error" || kind === "width") {
@@ -135,17 +142,21 @@ function paint(canvas, kind, model) {
     img.data[4 * i + 3] = 255;
   }
   ctx.putImageData(img, 0, 0);
-  if (kind !== "measurement" && $("#pixelInspector").open) HeatmapPixels.drawCanvas(canvas, point.x + 0.5, point.y + 0.5);
+  if (kind !== "measurement" && inspectorEl.open) HeatmapPixels.drawCanvas(canvas, pt.x + 0.5, pt.y + 0.5);
   if (kind === "measurement") { canvas.onclick = null; return; }
-  canvas.onclick = (e) => {
-    const r = canvas.getBoundingClientRect();
-    point = {
-      x: Math.max(0, Math.min(w - 1, Math.floor(((e.clientX - r.left) / r.width) * w))),
-      y: Math.max(0, Math.min(h - 1, Math.floor(((e.clientY - r.top) / r.height) * h))),
+  if (pctx?.onPixelClick) {
+    canvas.onclick = pctx.onPixelClick(canvas);
+  } else {
+    canvas.onclick = (e) => {
+      const r = canvas.getBoundingClientRect();
+      point = {
+        x: Math.max(0, Math.min(w - 1, Math.floor(((e.clientX - r.left) / r.width) * w))),
+        y: Math.max(0, Math.min(h - 1, Math.floor(((e.clientY - r.top) / r.height) * h))),
+      };
+      $("#pixelInspector").open = true;
+      drawImages();
     };
-    $("#pixelInspector").open = true;
-    drawImages();
-  };
+  }
 }
 
 function renderPixel() {
@@ -378,7 +389,10 @@ function initVideoLayout() {
     initVideoLayout();
     initUnpaired();
     $("#signedWidth").addEventListener("change", () => {
-      $("#widthFormula").textContent = $("#signedWidth").checked ? "upper − lower" : "|upper − lower|";
+      const formula = $("#signedWidth").checked ? "upper − lower" : "|upper − lower|";
+      $("#widthFormula").textContent = formula;
+      const dcFormula = document.getElementById("dc-widthFormula");
+      if (dcFormula) dcFormula.textContent = formula;
       if (example) renderExample();
     });
     for (const key of ["subtab", "tab"]) {

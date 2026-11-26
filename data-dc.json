@@ -9,6 +9,11 @@
           "ssim": 0.9352900385856628,
           "psnr": 35.53773498535156,
           "lpips": 0.14816543459892273
+        },
+        "deepensemble": {
+          "ssim": 0.9013554453849792,
+          "psnr": 32.162864685058594,
+          "lpips": 0.2694336175918579
         }
       }
     },
@@ -21,6 +26,11 @@
           "ssim": 0.9447988271713257,
           "psnr": 35.92069625854492,
           "lpips": 0.10067247599363327
+        },
+        "deepensemble": {
+          "ssim": 0.9200306534767151,
+          "psnr": 33.17463684082031,
+          "lpips": 0.17027336359024048
         }
       }
     },
@@ -33,6 +43,11 @@
           "ssim": 0.8898096084594727,
           "psnr": 30.91632080078125,
           "lpips": 0.19794678688049316
+        },
+        "deepensemble": {
+          "ssim": 0.8166550993919373,
+          "psnr": 27.244739532470703,
+          "lpips": 0.3299013674259186
         }
       }
     },
@@ -45,13 +60,19 @@
           "ssim": 0.8464575409889221,
           "psnr": 32.46630859375,
           "lpips": 0.2849692106246948
+        },
+        "deepensemble": {
+          "ssim": 0.8150146007537842,
+          "psnr": 30.548656463623047,
+          "lpips": 0.38005977869033813
         }
       }
     }
   ],
   "split": "test",
   "models": [
-    "im2im"
+    "im2im",
+    "deepensemble"
   ],
   "checkpoint_epoch": 49,
   "checkpoint_sha256": "e6d119b408e2419de73fb489aea10bf76dbda6c0cea5447607bf5cd6069e0ffc",
@@ -76,5 +97,22 @@
     "calibration_coverage": 0.9372793212532997,
     "certificate_passed": true,
     "hb_pvalue": 4.50131842426971e-09
+  },
+  "ensemble": {
+    "selected_epoch": 50,
+    "checkpoint_sha256": "346f983d6b0fab25618a3cbda3fe4c8b2e4c790e782e842c0972b56b6dc94542",
+    "calibration": {
+      "procedure": "Empirical global grid",
+      "scale": 0.620620608329773,
+      "grid_size": 1000,
+      "max_scale": 10,
+      "n_images": 2048,
+      "alpha": 0.1,
+      "target_coverage": 0.9,
+      "adjusted_risk_target": 0.099560546875,
+      "calibration_coverage": 0.9012936502695084,
+      "hb_upper_bound": 0.111161499538476,
+      "delta": 0.1
+    }
   }
 }

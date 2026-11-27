@@ -113,6 +113,16 @@
       "calibration_coverage": 0.9012936502695084,
       "hb_upper_bound": 0.111161499538476,
       "delta": 0.1
+    },
+    "test": {
+      "n_images": 5000,
+      "coverage": 0.9014634986111111,
+      "crossing": 0.0,
+      "mean_interval_width": 0.036494772771990744,
+      "mean_interval_width_in_image_range": 0.03561332054398148,
+      "psnr": 31.620174407958984,
+      "ssim": 0.8895073533058167,
+      "lpips": 0.2256072497367859
     }
   }
 }

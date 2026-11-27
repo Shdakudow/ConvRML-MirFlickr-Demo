@@ -97,7 +97,7 @@ function dcRenderExample() {
   document.getElementById("dc-matrix").innerHTML = html;
   dcDrawImages();
   document.getElementById("dc-status").textContent =
-    `${dcIndex + 1} / ${dcData.scenes.length} · ${dcExample.id} · ${dcData.scenes[dcIndex].objects}`;
+    `${dcIndex + 1} / ${dcData.scenes.length} · ${dcExample.id} · Im2im SSIM ${dcData.scenes[dcIndex].ssim.toFixed(3)}`;
 }
 
 async function dcLoadExample() {
@@ -149,13 +149,9 @@ async function dcLoadExample() {
         return r.json();
       })
     );
-    const ensemble = dcData.ensemble;
-    const coverage = (test) => (100 * test.coverage).toFixed(2) + "%";
+    const test = dcData.test;
     document.getElementById("dc-calibration-result").textContent =
-      `Im2im (epoch ${dcData.checkpoint_epoch}, K-RCPS): ${coverage(dcData.test)} test coverage. ` +
-      `Deep ensemble (epoch ${ensemble.selected_epoch}, global multiplier ${ensemble.calibration.scale.toFixed(4)}): ` +
-      (ensemble.test ? `${coverage(ensemble.test)} test coverage.` :
-        `${(ensemble.calibration.calibration_coverage * 100).toFixed(2)}% calibration coverage.`);
+      `Epoch ${dcData.checkpoint_epoch} · Test pixel coverage ${(100 * test.coverage).toFixed(2)}% across ${test.n_images.toLocaleString("en-US")} images.`;
     const params = new URLSearchParams(location.search);
     dcIndex = Math.max(0, Math.min(dcData.scenes.length - 1, Math.trunc(Number(params.get("dc-example"))) || 0));
     const dcSel = document.getElementById("dc-example");
